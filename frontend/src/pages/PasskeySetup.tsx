@@ -198,8 +198,8 @@ export const PasskeySetup: React.FC = () => {
       {/* Security Guidance Note */}
       <Card theme="navy">
         <div className="font-mono text-xs text-stone-200 space-y-1">
-          <p className="font-bold text-warm-white uppercase">BEL ZERO-TRUST AUTHENTICATION POLICY:</p>
-          <p>• Only FIDO2 L2+ certified authenticators or defence workstation TPM 2.0 chips are approved for asset decryption.</p>
+          <p className="font-bold text-warm-white uppercase">ZERO-TRUST AUTHENTICATION POLICY:</p>
+          <p>• Only FIDO2 L2+ certified authenticators or workstation TPM 2.0 chips are approved for asset decryption.</p>
           <p>• In the event of device compromise or loss, revoke the credential immediately to prevent unauthorized on-chain transactions.</p>
         </div>
       </Card>
@@ -234,7 +234,7 @@ export const PasskeySetup: React.FC = () => {
             >
               <option value="YubiKey 5C FIPS (Hardware Token)">YubiKey 5C FIPS (Hardware Token)</option>
               <option value="Nitrokey 3 Pro (Open Hardware)">Nitrokey 3 Pro (Open Hardware)</option>
-              <option value="Defence Workstation TPM 2.0 (Platform)">Defence Workstation TPM 2.0 (Platform)</option>
+              <option value="Engineering Workstation TPM 2.0 (Platform)">Engineering Workstation TPM 2.0 (Platform)</option>
               <option value="Windows Hello Enterprise Credential">Windows Hello Enterprise Credential</option>
               <option value="Apple Secure Enclave (Touch ID / Face ID)">Apple Secure Enclave (Touch ID / Face ID)</option>
             </select>

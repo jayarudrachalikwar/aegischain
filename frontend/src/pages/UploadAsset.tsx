@@ -19,7 +19,7 @@ export const UploadAsset: React.FC = () => {
   // Form states
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState(currentUser?.department || 'Radar & Sensor Systems');
-  const [classification, setClassification] = useState<SecurityClassification>('SECRET');
+  const [classification, setClassification] = useState<SecurityClassification>('CONFIDENTIAL');
   const [retentionMonths, setRetentionMonths] = useState('36');
   const [description, setDescription] = useState('');
   const [filePayloadContent, setFilePayloadContent] = useState('');
@@ -74,15 +74,15 @@ export const UploadAsset: React.FC = () => {
   };
 
   const handlePreloadSampleSpec = async () => {
-    const sample = `AEGIS-DEFENCE-SPECIFICATION // BEL-RADAR-DSP-MATRIX
-CLASSIFICATION: TOP_SECRET
+    const sample = `AEGIS-ENGINEERING-SPECIFICATION // RADAR-DSP-MATRIX
+CLASSIFICATION: RESTRICTED
 DATE: ${new Date().toISOString()}
 ALGORITHM: PHASED_ARRAY_ADAPTIVE_BEAMFORMING_V4
 COEFFICIENTS: [0.9412, -0.1205, 0.4489, 0.7712, -0.3391]
-AUTHORIZATION: DID_AEGIS_BEL_MGR_ADESHMUKH`;
+AUTHORIZATION: DID_AEGIS_MGR_ADESHMUKH`;
 
     setTitle('Phased Array Adaptive Beamforming Specification');
-    setClassification('TOP_SECRET');
+    setClassification('RESTRICTED');
     setDescription('High-resolution adaptive antenna nulling coefficients for electronic counter-countermeasures.');
     setDepartment('Radar & Sensor Systems');
     await handleTextPayloadChange(sample);
@@ -117,12 +117,12 @@ AUTHORIZATION: DID_AEGIS_BEL_MGR_ADESHMUKH`;
         department,
         sizeBytes,
         sha256Hash: computedSha256,
-        ownerDid: currentUser?.did || 'did:aegis:bel:emp:vrathore',
+        ownerDid: currentUser?.did || 'did:aegis:emp:vrathore',
         ownerName: currentUser?.displayName || 'Authorized Engineer',
         encryptionType: 'AES-256-GCM',
         keyFingerprint,
         retentionExpiry: new Date(Date.now() + parseInt(retentionMonths) * 30 * 24 * 3600 * 1000).toISOString(),
-        description: description || 'Defence asset registered to AegisChain smart contract registry.',
+        description: description || 'Asset registered to the AegisChain ledger (simulated).',
         contentSample: filePayloadContent || (selectedFile ? `BINARY ENCRYPTED PAYLOAD (${selectedFile.name})` : ''),
       });
 
@@ -166,7 +166,7 @@ AUTHORIZATION: DID_AEGIS_BEL_MGR_ADESHMUKH`;
           onClick={handlePreloadSampleSpec}
           leftIcon={<FileText className="w-3.5 h-3.5" />}
         >
-          Load Defence Sample
+          Load Sample Document
         </Button>
       </div>
 
@@ -241,10 +241,9 @@ AUTHORIZATION: DID_AEGIS_BEL_MGR_ADESHMUKH`;
                     value={classification}
                     onChange={(e) => setClassification(e.target.value as SecurityClassification)}
                   >
-                    <option value="RESTRICTED">RESTRICTED</option>
+                    <option value="INTERNAL">INTERNAL</option>
                     <option value="CONFIDENTIAL">CONFIDENTIAL</option>
-                    <option value="SECRET">SECRET</option>
-                    <option value="TOP_SECRET">TOP SECRET</option>
+                    <option value="RESTRICTED">RESTRICTED</option>
                   </Select>
 
                   <Select
@@ -254,7 +253,7 @@ AUTHORIZATION: DID_AEGIS_BEL_MGR_ADESHMUKH`;
                   >
                     <option value="Radar & Sensor Systems">Radar & Sensor Systems</option>
                     <option value="Electronic Warfare Directorate">Electronic Warfare Directorate</option>
-                    <option value="Cyber Defence Command & SOC">Cyber Defence Command & SOC</option>
+                    <option value="Security Operations Center">Security Operations Center</option>
                     <option value="Avionics & Missile Guidance">Avionics & Missile Guidance</option>
                   </Select>
                 </div>

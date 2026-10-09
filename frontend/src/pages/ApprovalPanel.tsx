@@ -42,7 +42,7 @@ export const ApprovalPanel: React.FC = () => {
   const handleOpenReview = (req: AccessRequest, decision: 'APPROVED' | 'REJECTED') => {
     setActiveModalRequest(req);
     setReviewDecision(decision);
-    setReviewNote(decision === 'APPROVED' ? 'Approved under operational mandate.' : 'Insufficient clearance for this payload.');
+    setReviewNote(decision === 'APPROVED' ? 'Approved for the stated business purpose.' : 'Insufficient clearance for this payload.');
   };
 
   const handleConfirmDecision = async (e: React.FormEvent) => {
@@ -55,7 +55,7 @@ export const ApprovalPanel: React.FC = () => {
         activeModalRequest.id,
         reviewDecision,
         currentUser?.displayName || 'Dr. Anita Deshmukh',
-        currentUser?.did || 'did:aegis:bel:mgr:adeshmukh',
+        currentUser?.did || 'did:aegis:mgr:adeshmukh',
         reviewNote
       );
 

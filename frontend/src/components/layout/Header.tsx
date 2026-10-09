@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
         <div className="bg-signal-red text-warm-white px-4 py-1.5 text-xs font-mono font-bold flex items-center justify-between animate-pulse">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-4 h-4" />
-            <span>CRITICAL ALERT: AUTOMATED DEFENCE LOCKDOWN ACTIVE · ASSET TRANSFERS FROZEN</span>
+            <span>CRITICAL ALERT: AUTOMATED SECURITY LOCKDOWN ACTIVE · ASSET TRANSFERS FROZEN</span>
           </div>
           <button
             onClick={() => toggleLockdown('Manual clearance by authorized security officer')}
@@ -60,7 +60,7 @@ export const Header: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] font-mono text-muted-blue tracking-wider hidden sm:block">
-                BHARAT ELECTRONICS LIMITED · DEFENCE CUSTODY
+                AEGISCHAIN · SECURE ASSET CUSTODY
               </p>
             </div>
           </Link>
@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
           <div className="h-3 w-[1px] bg-muted-blue/40" />
           <div className="flex items-center gap-1">
             <Cpu className="w-3.5 h-3.5 text-muted-blue-light" />
-            <span className="text-stone-300">IBFT 2.0</span>
+            <span className="text-stone-300">Raft</span>
           </div>
           <div className="h-3 w-[1px] bg-muted-blue/40" />
           <div className="flex items-center gap-1">
@@ -100,7 +100,7 @@ export const Header: React.FC = () => {
             <Link
               to="/portal"
               className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-bel-navy-dark text-parchment-light/80 hover:text-parchment-light border border-muted-blue/40"
-              title="View BEL-Inspired Trust Layer Architecture Portal"
+              title="View Trust Layer Architecture Portal"
             >
               <span>TRUST PORTAL</span>
             </Link>
@@ -138,7 +138,7 @@ export const Header: React.FC = () => {
                 <div className="p-2 border-b border-black/10 bg-black/5 mb-1">
                   <p className="font-mono text-[10px] text-stone-500 uppercase">Current DID:</p>
                   <p className="font-mono text-xs font-bold truncate text-bel-navy">
-                    {currentUser?.did || 'did:aegis:bel:unauthenticated'}
+                    {currentUser?.did || 'did:aegis:unauthenticated'}
                   </p>
                 </div>
                 <div className="px-2 py-1 text-[10px] font-mono text-stone-500 uppercase tracking-wider">

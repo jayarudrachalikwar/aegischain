@@ -4,7 +4,7 @@ import { UserCog, Fingerprint, QrCode, Shield, Key, AlertTriangle, CheckCircle2,
 import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { Badge, ClassificationBadge } from '../components/common/Badge';
+import { Badge } from '../components/common/Badge';
 import { HashDisplay } from '../components/common/HashDisplay';
 import { formatTimestamp } from '../utils/formatters';
 
@@ -36,7 +36,7 @@ export const ProfileSecurity: React.FC = () => {
             Identity & Cryptographic Security
           </h1>
           <p className="font-mono text-xs text-stone-600 mt-1">
-            Decentralized identity parameters, assigned clearances, and hardware authenticators
+            Decentralized identity parameters, assigned role, and hardware authenticators
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export const ProfileSecurity: React.FC = () => {
                   </h3>
                   <p className="text-stone-500 mt-0.5">{currentUser?.email}</p>
                 </div>
-                <ClassificationBadge classification={currentUser?.clearanceLevel || 'SECRET'} />
+                <Badge variant="navy">{currentUser?.role}</Badge>
               </div>
 
               <div className="p-3 bg-stone-50 border border-stone-200 space-y-2 mt-2">
@@ -110,7 +110,7 @@ export const ProfileSecurity: React.FC = () => {
             <div className="space-y-2 font-mono text-xs">
               <div className="p-2.5 bg-stone-50 border border-stone-200 flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-stone-800 block">Current Workstation (BEL-WS-492)</span>
+                  <span className="font-bold text-stone-800 block">Current Workstation (WS-492)</span>
                   <span className="text-[10px] text-stone-500">Node: 10.14.92.108 · Mutual TLS 1.3 · TPM 2.0 Attested</span>
                 </div>
                 <span className="stamp-verified text-[10px]">VERIFIED</span>

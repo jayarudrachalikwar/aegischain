@@ -3,10 +3,12 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
+import { DemoBanner } from '../common/DemoBanner';
 
 export const AppShell: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-parchment text-bel-navy font-sans bg-blueprint-grid selection:bg-bel-navy selection:text-parchment">
+      <DemoBanner />
       <Header />
 
       <div className="flex-1 flex max-w-[1920px] w-full mx-auto relative">

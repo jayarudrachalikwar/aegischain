@@ -23,7 +23,7 @@ export const TrustPortal: React.FC = () => {
   // 01. Hero Proof Rail State
   const [proofRailStep, setProofRailStep] = useState(2);
   const proofNodes = [
-    { id: 'IDENTITY', label: 'IDENTITY', tag: 'DID ANCHORED', desc: 'Sovereign digital identity on private consortium ledger.' },
+    { id: 'IDENTITY', label: 'IDENTITY', tag: 'DID ANCHORED', desc: 'Platform-issued pseudonymous identity (DID) recorded on a permissioned Fabric ledger.' },
     { id: 'ACCESS', label: 'ACCESS', tag: 'ZERO-TRUST', desc: 'Role-based evaluation with cryptographic least-privilege boundary.' },
     { id: 'HASH', label: 'HASH', tag: 'SHA-256 SEAL', desc: 'Off-chain file hash anchored to ledger; payload never touches chain.' },
     { id: 'APPROVAL', label: 'APPROVAL', tag: 'TIME-BOUND', desc: 'Director-signed clearance with automated block-timestamp expiration.' },
@@ -34,28 +34,28 @@ export const TrustPortal: React.FC = () => {
   const [archStep, setArchStep] = useState(1);
 
   // 04. Role Tabs
-  const [activeRole, setActiveRole] = useState<'Admin' | 'Manager' | 'Auditor' | 'Engineer' | 'Contractor'>('Manager');
+  const [activeRole, setActiveRole] = useState<'Employee' | 'Manager' | 'Admin' | 'Auditor' | 'Security Officer'>('Manager');
 
   // 05. Live Verification Terminal State
-  const sampleBELMemo = `[BEL RADAR SYSTEMS // SENSOR SPECIFICATION]
+  const sampleMemo = `[RADAR SYSTEMS // SENSOR SPECIFICATION]
 UNIT: X-BAND AESA RADAR TRANSCEIVER COEFFICIENTS
 FREQUENCY: 9.42GHz | PEAK_POWER: 45kW | PRF: 2400Hz
-HOPPING_KEY_ID: BEL-ECCM-9921-X
+HOPPING_KEY_ID: ECCM-9921-X
 SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
 
-  const [sealedText, setSealedText] = useState(sampleBELMemo);
+  const [sealedText, setSealedText] = useState(sampleMemo);
   const [onChainHash, setOnChainHash] = useState('');
-  const [downloadText, setDownloadText] = useState(sampleBELMemo);
+  const [downloadText, setDownloadText] = useState(sampleMemo);
   const [downloadHash, setDownloadHash] = useState('');
   const [verificationState, setVerificationState] = useState<'MATCH' | 'MISMATCH' | 'REVOKED'>('MATCH');
   const [miniAudit, setMiniAudit] = useState<{ action: string; time: string; note: string }[]>([
-    { action: 'SEALED', time: '12:00:00', note: 'SHA-256 fingerprint anchored to consortium ledger' },
+    { action: 'SEALED', time: '12:00:00', note: 'SHA-256 fingerprint anchored to Fabric ledger' },
   ]);
 
   // Compute initial SHA-256 hash
   useEffect(() => {
     (async () => {
-      const h = await computeSha256(sampleBELMemo);
+      const h = await computeSha256(sampleMemo);
       setOnChainHash(h);
       setDownloadHash(h);
     })();
@@ -125,7 +125,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
         <div className="space-y-3.5 max-w-4xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-bel-navy text-parchment border-[1.5px] border-bel-navy font-mono text-[11px] font-bold uppercase tracking-widest shadow-ink-sm">
             <span className="w-2 h-2 rounded-full bg-muted-blue animate-pulse" />
-            <span>BEL SOVEREIGN ASSET PROTECTION</span>
+            <span>SECURE ENGINEERING ASSET PROTECTION</span>
           </div>
 
           <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl text-bel-navy uppercase font-black tracking-tight leading-[0.92]">
@@ -134,13 +134,13 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
           </h1>
 
           <p className="font-mono text-xs sm:text-sm text-bel-navy/80 max-w-2xl leading-relaxed">
-            AegisChain provides cryptographic proof of identity and access for Bharat Electronics Limited (BEL) without putting sensitive defence payloads on-chain.
+            AegisChain provides cryptographic proof of identity and access for engineering organizations without putting sensitive document payloads on-chain.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link to="/dashboard">
               <Button variant="primary" size="md" leftIcon={<Shield className="w-4 h-4" />}>
-                Enter Defence Vault
+                Enter Secure Vault
               </Button>
             </Link>
             <a href="#bel-problem">
@@ -245,7 +245,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
         <div className="bg-bel-navy text-parchment border-2 border-bel-navy py-1.5 px-3 overflow-hidden font-mono text-[11px] shadow-ink-sm">
           <div className="flex items-center gap-8 whitespace-nowrap animate-marquee">
             <span className="text-muted-blue font-bold">OPERATIONAL TELEMETRY //</span>
-            <span>BEL RADAR LAB · SENSOR SPEC SEALED · HASH 9F3A…C1D2 · INTEGRITY VERIFIED</span>
+            <span>ENGINEERING LAB · SENSOR SPEC SEALED · HASH 9F3A…C1D2 · INTEGRITY VERIFIED</span>
             <span className="text-muted-blue">·</span>
             <span>EW DIRECTORATE · 8-HOUR ACCESS GRANT ACTIVE</span>
             <span className="text-muted-blue">·</span>
@@ -257,18 +257,18 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
       </section>
 
       {/* ============================================================== */}
-      {/* 02 THE REAL PROBLEM OF BEL (CONCISE 4-CARD MATRIX)              */}
+      {/* 02 THE REAL PROBLEM (CONCISE 4-CARD MATRIX)              */}
       {/* ============================================================== */}
       <section id="bel-problem" className="space-y-4 scroll-mt-24">
         <div className="border-b-2 border-bel-navy pb-2.5">
           <span className="font-mono text-xs text-muted-blue font-bold uppercase tracking-wider">
-            VULNERABILITY MATRIX // BEL SOVEREIGN IP
+            VULNERABILITY MATRIX // ENGINEERING IP
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl text-bel-navy uppercase font-black tracking-tight mt-0.5">
             FOUR CRITICAL DEFENCE VULNERABILITIES.
           </h2>
           <p className="font-mono text-xs text-bel-navy/70 mt-1 max-w-2xl">
-            Off-chain storage across radar, electronic warfare, and avionics units exposes defence IP to four major risks:
+            Off-chain storage across engineering teams exposes confidential IP to four major risks:
           </p>
         </div>
 
@@ -301,7 +301,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
               unit: 'MISSILE GUIDANCE',
               title: 'Malleable Central Logs',
               risk: 'Root administrators can alter, backdate, or erase central database audit logs.',
-              solution: 'Every grant and download is an immutable consortium transaction.',
+              solution: 'Every grant and download is an immutable ledger transaction.',
             },
           ].map((item) => (
             <div
@@ -349,11 +349,11 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
           {/* Left: 5 Compact Operational Steps */}
           <div className="lg:col-span-5 space-y-2 font-mono text-xs">
             {[
-              { step: 1, title: 'Issue Sovereign DID', desc: 'Admin issues identity credential mapped to engineering clearance.' },
+              { step: 1, title: 'Issue Platform DID', desc: 'Admin issues identity credential mapped to engineering clearance.' },
               { step: 2, title: 'Seal Off-Chain Payload', desc: '100% of payload encrypted off-chain; SHA-256 fingerprint anchored to ledger.' },
               { step: 3, title: 'Request Access with Purpose', desc: 'Engineer submits mission purpose; Director signs time-limited grant.' },
               { step: 4, title: 'Verify at Download Gate', desc: 'Client recomputes SHA-256 locally; 1-bit mismatch blocks decrypt.' },
-              { step: 5, title: 'Immutable Forensic Log', desc: 'Every action leaves a permanent, tamper-evident trace on consortium ledger.' },
+              { step: 5, title: 'Immutable Forensic Log', desc: 'Every action leaves a permanent, tamper-evident trace on Fabric ledger.' },
             ].map((s) => (
               <div
                 key={s.step}
@@ -422,7 +422,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
             </div>
 
             <p className="mt-2.5 font-mono text-[10px] text-parchment/80">
-              • The consortium ledger stores proofs and grants, never confidential payloads. If off-chain files are altered, local client verification immediately blocks decryption.
+              • The Fabric ledger stores proofs and grants, never confidential payloads. If off-chain files are altered, local client verification immediately blocks decryption.
             </p>
           </div>
         </div>
@@ -443,7 +443,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
 
         {/* 5 Accessible Role Tabs */}
         <div className="flex flex-wrap items-center gap-1.5 border-b-2 border-bel-navy pb-2 font-mono text-xs" role="tablist">
-          {(['Admin', 'Manager', 'Auditor', 'Engineer', 'Contractor'] as const).map((r) => (
+          {(['Employee', 'Manager', 'Admin', 'Auditor', 'Security Officer'] as const).map((r) => (
             <button
               key={r}
               role="tab"
@@ -467,11 +467,11 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
               <div>
                 <h3 className="font-bold text-xs uppercase text-bel-navy">{activeRole} Authority Boundary</h3>
                 <p className="text-bel-navy/70 text-[11px] mt-0.5">
-                  {activeRole === 'Admin' && 'Manages user identities and DIDs; mathematically blocked from decrypting payload files.'}
-                  {activeRole === 'Manager' && 'Approves time-bound access grants; cannot alter tamper-proof audit trails.'}
-                  {activeRole === 'Auditor' && 'Inspects immutable access history; cannot modify logs or access file contents.'}
-                  {activeRole === 'Engineer' && 'Uploads sealed assets and requests grants; cannot self-approve clearances.'}
-                  {activeRole === 'Contractor' && 'Temporary clearance expires automatically on smart contract timestamp.'}
+                  {activeRole === 'Admin' && 'Manages users, roles and credential resets; cannot approve access or download files without a grant.'}
+                  {activeRole === 'Manager' && 'Approves time-bound grants for their department; cannot approve their own requests.'}
+                  {activeRole === 'Auditor' && 'Reads audit history and verifies integrity; read-only, cannot download file contents.'}
+                  {activeRole === 'Employee' && 'Uploads assets, requests access, and manages grants on assets they own; cannot approve their own requests.'}
+                  {activeRole === 'Security Officer' && 'Triages alerts, locks users, freezes assets and revokes grants; cannot change roles or download without a grant.'}
                 </p>
               </div>
               <span className="px-2 py-0.5 bg-bel-navy text-parchment font-bold text-[10px] uppercase border border-bel-navy self-start sm:self-auto">
@@ -492,10 +492,11 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
                 <tbody className="divide-y divide-bel-navy/15 text-bel-navy text-[11px]">
                   {[
                     { action: 'Issue user identities & DIDs', allowed: activeRole === 'Admin' },
-                    { action: 'Upload & seal defence assets', allowed: ['Admin', 'Manager', 'Engineer'].includes(activeRole) },
-                    { action: 'Approve access requests', allowed: ['Manager', 'Admin'].includes(activeRole) },
-                    { action: 'Download granted files', allowed: ['Engineer', 'Manager', 'Admin', 'Contractor'].includes(activeRole) },
-                    { action: 'Inspect forensic audit history', allowed: ['Auditor', 'Admin'].includes(activeRole) },
+                    { action: 'Upload & seal engineering assets', allowed: activeRole !== 'Auditor' },
+                    { action: 'Approve access requests (owner or department manager)', allowed: ['Manager', 'Employee'].includes(activeRole) },
+                    { action: 'Download files (owner or active grant only)', allowed: activeRole !== 'Auditor' },
+                    { action: 'Inspect audit history', allowed: ['Auditor', 'Security Officer'].includes(activeRole) },
+                    { action: 'Lock users, freeze assets, triage alerts', allowed: activeRole === 'Security Officer' },
                     { action: 'Read files without an explicit grant', allowed: false },
                   ].map((row, idx) => (
                     <tr key={idx} className="hover:bg-bel-navy/5">
@@ -513,7 +514,7 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
                       </td>
                       <td className="py-1.5 text-[10px] text-bel-navy/70">
                         {row.action === 'Read files without an explicit grant'
-                          ? 'Zero-trust: mathematically blocked.'
+                          ? 'Zero-trust: denied unless the owner or an active grant applies.'
                           : row.allowed
                           ? 'Permitted under assigned role certificate.'
                           : 'Prohibited by separation of duties.'}
@@ -706,13 +707,13 @@ SECURITY CLEARANCE: LEVEL-4 SENSOR ENGINEERS ONLY`;
         </h2>
 
         <p className="font-mono text-xs sm:text-sm text-parchment/80 max-w-lg mx-auto leading-relaxed">
-          Zero-trust identity custody and immutable asset governance for sovereign defence IP. Launch the Defence Vault to test the live console.
+          Zero-trust identity custody and tamper-evident asset governance for engineering IP. Launch the Secure Vault to explore the prototype console.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
           <Link to="/dashboard">
             <Button variant="secondary" size="lg" leftIcon={<Shield className="w-5 h-5" />}>
-              Enter Defence Vault
+              Enter Secure Vault
             </Button>
           </Link>
           <a href="#hero">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { LandingNav } from './LandingNav';
 import { Footer } from './Footer';
+import { DemoBanner } from '../common/DemoBanner';
 
 export const LandingLayout: React.FC = () => {
   return (
@@ -10,6 +11,7 @@ export const LandingLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full pt-16 sm:pt-20 pb-12">
+        <DemoBanner />
         <Outlet />
       </main>
 

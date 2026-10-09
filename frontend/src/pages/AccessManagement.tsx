@@ -47,7 +47,7 @@ export const AccessManagement: React.FC = () => {
     try {
       await apiClient.grants.revokeGrant(
         selectedGrant.id,
-        currentUser?.did || 'did:aegis:bel:sec:operator',
+        currentUser?.did || 'did:aegis:sec:operator',
         currentUser?.displayName || 'Authorized Officer',
         revokeReason
       );
@@ -107,8 +107,8 @@ export const AccessManagement: React.FC = () => {
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-6 h-6 text-signal-red flex-shrink-0" />
             <div>
-              <p className="font-bold text-sm uppercase text-signal-red">EMERGENCY DEFENCE LOCKDOWN IN EFFECT</p>
-              <p className="text-stone-300">All cryptographic asset decrypt keys and downloads are currently blocked across the consortium.</p>
+              <p className="font-bold text-sm uppercase text-signal-red">EMERGENCY SECURITY LOCKDOWN IN EFFECT</p>
+              <p className="text-stone-300">All cryptographic asset decrypt keys and downloads are currently blocked across the platform.</p>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ export const AccessManagement: React.FC = () => {
         <form onSubmit={handleRevoke} className="space-y-4">
           <div className="p-3 bg-red-50 border border-signal-red text-signal-red font-mono text-xs space-y-1">
             <p className="font-bold">CAUTION: INSTANT ON-CHAIN REVOCATION</p>
-            <p className="text-stone-700">The smart contract will immediately cancel this grant token. All subsequent download and decrypt attempts will be blocked.</p>
+            <p className="text-stone-700">The server revokes this grant immediately and all future download attempts will be blocked. Copies the user already downloaded cannot be recalled.</p>
           </div>
 
           <div className="space-y-1">

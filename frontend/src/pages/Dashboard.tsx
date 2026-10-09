@@ -72,10 +72,10 @@ export const Dashboard: React.FC = () => {
             <span className="font-mono text-xs text-signal-red font-bold uppercase tracking-wider">
               AEGISCHAIN SECURE COMMAND CENTRE //
             </span>
-            <Badge variant="navy">IBFT 2.0 VALIDATED</Badge>
+            <Badge variant="navy">RAFT ORDERED (SIMULATED)</Badge>
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl text-bel-navy uppercase font-black tracking-tight mt-1">
-            Defence Custody Overview
+            Asset Custody Overview
           </h1>
           <p className="font-mono text-xs text-stone-600 mt-1">
             Active Identity: <span className="font-bold text-bel-navy">{currentUser?.displayName}</span> ({currentUser?.role}) · DID: <span className="font-semibold text-stone-800">{currentUser?.did}</span>
@@ -164,7 +164,7 @@ export const Dashboard: React.FC = () => {
               {unresolvedCount}
             </span>
             <span className="font-mono text-[11px] text-stone-600 font-semibold">
-              {isGlobalLockdown ? 'DEFENCE LOCKDOWN' : 'NORMAL'}
+              {isGlobalLockdown ? 'SECURITY LOCKDOWN' : 'NORMAL'}
             </span>
           </div>
           <p className="font-mono text-[11px] text-stone-500 mt-1">Zero-trust tamper telemetry</p>
@@ -233,7 +233,7 @@ export const Dashboard: React.FC = () => {
             <div className="font-mono text-xs text-stone-800 space-y-1.5">
               <div className="flex items-center gap-2 text-bel-navy font-bold uppercase">
                 <FileCheck className="w-4 h-4 text-signal-red" />
-                <span>BEL Defence Zero-Trust Architectural Compliance</span>
+                <span>Zero-Trust Architectural Compliance</span>
               </div>
               <p className="text-stone-700 leading-relaxed">
                 AegisChain enforces cryptographic separation of powers: Identity admins manage DIDs but cannot read file payloads. Managers approve grants without modifying audit logs. Off-chain files are strictly decrypted after client-side SHA-256 match confirmation.
@@ -291,7 +291,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="mt-4 pt-3 border-t border-muted-blue/20 flex items-center justify-between text-[11px] font-mono text-muted-blue-light">
-              <span>CONSENSUS: IBFT 2.0</span>
+              <span>ORDERING: RAFT (SIMULATED)</span>
               <span className="text-verification-green font-bold">14.8 TPS</span>
             </div>
           </Card>

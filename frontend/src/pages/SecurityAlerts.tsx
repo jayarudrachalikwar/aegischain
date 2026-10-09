@@ -69,7 +69,7 @@ export const SecurityAlerts: React.FC = () => {
             variant="outline"
             size="sm"
             leftIcon={<AlertTriangle className="w-3.5 h-3.5" />}
-            onClick={() => triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:bel:operator', 6)}
+            onClick={() => triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:operator', 6)}
           >
             Simulate Bulk Attack
           </Button>
@@ -84,10 +84,10 @@ export const SecurityAlerts: React.FC = () => {
               <ShieldAlert className="w-6 h-6 text-signal-red flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-mono text-sm font-bold uppercase text-signal-red tracking-wider">
-                  DEFENCE LOCKDOWN ENGAGED ACROSS CONSORTIUM
+                  SECURITY LOCKDOWN ENGAGED ACROSS CONSORTIUM
                 </h3>
                 <p className="font-mono text-xs text-stone-300 mt-0.5">
-                  Automated defence response triggered: asset downloads and decryption pipelines are frozen.
+                  Automated security response triggered: asset downloads and decryption pipelines are frozen.
                 </p>
               </div>
             </div>

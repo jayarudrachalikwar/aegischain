@@ -1,75 +1,51 @@
-# AegisChain 2.0 — Sovereign Defence Asset Custody & Zero-Trust Frontend
+# AegisChain 2.0 — Frontend (prototype)
 
-A high-assurance, production-ready frontend for **AegisChain 2.0**, engineered for Bharat Electronics Limited (BEL) and sovereign defence organizations. AegisChain provides zero-trust identity references, WebAuthn/FIDO2 hardware passkeys, RFC 6238 TOTP MFA, controlled asset custody, client-side Web Crypto SHA-256 verification, and immutable consortium audit logging.
+React 19 + TypeScript + Vite + Tailwind UI for AegisChain: access control for confidential engineering
+documents (encrypted off-chain storage, passkey + TOTP login, time-limited grants, integrity checks against a
+Hyperledger Fabric ledger, tamper-evident audit).
 
----
+> **Status: interactive prototype running on simulated data.** By default (`VITE_DEMO_MODE=true`) the UI uses
+> an in-browser mock store and never contacts the backend. The backend is built separately (see `../docs/`),
+> and most of its security features are still planned.
 
-## 🛡️ Core Guarantees & Architecture
+## What is real vs simulated
 
-1. **Zero Sensitive Payloads On-Chain**: All defence payloads, CAD models, and calibration tables are encrypted and stored off-chain with **AES-256-GCM**. Only cryptographic SHA-256 fingerprints, ownership metadata, time-bound access grants, and audit events are anchored to the consortium ledger.
-2. **Local Download Integrity Gate**: On every asset download, the browser Web Crypto API (`window.crypto.subtle.digest`) recomputes the SHA-256 hash. If even a single bit diverges from the on-chain anchor, decryption is immediately aborted and a security incident is logged.
-3. **Automated Velocity Telemetry**: Bulk download attacks (>3 rapid transfers in a narrow window) trigger an automatic defensive lockdown of the operator's session.
-4. **Separation of Duties**: Role-based authority matrices partition responsibilities between **Admin**, **Manager**, **Auditor**, **Engineer**, and **Contractor** accounts with mathematically enforced boundaries.
+| Area | In this UI |
+|---|---|
+| SHA-256 hashing and comparison | **Real** (browser Web Crypto, `src/utils/crypto.ts`) |
+| Passkey login (WebAuthn) | Simulated; no `navigator.credentials` call yet |
+| TOTP | Simulated; any 6 digits are accepted in demo mode |
+| AES-256-GCM encryption, file upload | Simulated (label only; no bytes encrypted or sent) |
+| Blockchain panel (block height, TPS, peers, tx hashes) | Simulated numbers; the planned ledger is Hyperledger Fabric |
+| Audit log, alerts, grants, approvals | Mock data in `src/api/mockAdapter.ts` |
+| Role-based screens | UI convenience only (`src/config/access.ts`); the **server** must enforce authorization |
 
----
+The seeded demo assets' stored hashes are the real SHA-256 of their sample text, so "Verify" passes and the
+"Simulate tamper" button demonstrates a genuine mismatch.
 
-## 🚀 Running the Frontend
+## Run
 
-### Prerequisites
-- Node.js >= 18
-- npm >= 9
-
-### Quick Start
+Prerequisites: Node.js >= 22 (see `../.nvmrc`), npm.
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Configure environment variables (optional, defaults to demo mode)
-cp .env.example .env
-
-# 3. Start development server with live HMR
-npm run dev
-
-# 4. Open in browser
-http://localhost:5173
+npm ci
+cp .env.example .env     # optional; demo mode is the default
+npm run dev              # http://localhost:5173
+npm run build            # type-check + production build
+npm run lint             # oxlint
 ```
+Sign in from `/login` using the "Fast role tester" (demo users, any 6-digit code).
 
-### Production Build & Preview
-```bash
-# Type check and build
-npm run build
+## Real mode (not complete)
+`VITE_DEMO_MODE=false` routes calls through `src/api/client.ts` to `/api/v1` (same-origin; the Vite dev
+proxy forwards `/api` to the backend, see `vite.config.ts` and `VITE_PROXY_TARGET`). The transport follows
+the API contract (cookie session, `X-CSRF-Token`, `{error:{code,message,requestId}}` errors), but endpoint
+paths and response shapes still follow the prototype. The mapping to do is in `../docs/FRONTEND_INTEGRATION.md`.
 
-# Preview production build
-npm run preview
-```
+## Routes
+`/` and `/portal` (public explainer with an interactive hash-verification demo) · `/login` · `/passkeys` ·
+`/mfa` · `/dashboard` · `/assets` · `/upload` · `/assets/:id` · `/request-access` · `/approvals` ·
+`/access-management` · `/audit-logs` · `/security-alerts` · `/users` · `/profile`.
+Protected routes redirect to `/login` when signed out; screens a role should not use show a notice.
 
----
-
-## 🗺️ Application Routes
-
-| Route | Page | Description |
-|---|---|---|
-| `/` or `/portal` | **Trust Portal** | Sovereign defence landing page with interactive 5-stage Proof Rail, threat matrix, architecture diagram, and real-time Web Crypto verification gate. |
-| `/login` | **Login Gateway** | WebAuthn passkey assertion, TOTP MFA challenge, and quick demo role switcher. |
-| `/passkeys` | **Passkey Setup** | Register, inspect, rename, and revoke hardware FIDO2 authenticators. |
-| `/mfa` | **MFA Setup** | RFC 6238 TOTP enrollment with QR code, secret key, and emergency recovery codes. |
-| `/dashboard` | **Command Centre** | Real-time telemetry, active grants, pending approvals, and consortium event activity. |
-| `/assets` | **My Assets** | Defence asset vault with classification filters, search, and custody state. |
-| `/upload` | **Upload Asset** | Web Crypto SHA-256 hashing, AES-256-GCM encryption simulation, and on-chain registration. |
-| `/assets/:id` | **Asset Details** | On-chain provenance, ACL, live download integrity gate, and 1-bit tamper simulation. |
-| `/request-access` | **Request Access** | Time-bound clearance request with operational mission justification. |
-| `/approvals` | **Approval Queue** | Director review queue, grant approval/rejection with duration override. |
-| `/access-management` | **Access Grants** | Active grants table, countdown to auto-expiry, instant revocation, and emergency freeze. |
-| `/audit-logs` | **Audit Ledger** | Searchable immutable event ledger with CSV & JSON compliance export. |
-| `/security-alerts` | **Security Telemetry** | Incident monitor, tamper alerts, velocity violations, and acknowledge workflows. |
-| `/users` | **User Management** | Identity directory, DID issuer (`did:aegis:bel:...`), clearance levels, and roles. |
-| `/profile` | **Profile & Security** | Operator DID inspection, public key fingerprint, active sessions, and emergency kill switch. |
-
----
-
-## 🎨 Design System & Palette (Strict Combo 2)
-
-- **Deep Defence Navy**: `#0C2C55` (Primary canvas headers, ink borders, command panels, text)
-- **Radar Steel Cyan**: `#629FAD` (Active indicators, verification seals, telemetry, accents)
-- **Technical Defence Parchment**: `#EDEDCE` (Main background canvas, card surfaces)
-- **Typography**: `Instrument Serif` (Headlines), `IBM Plex Mono` (Security metadata, technical logs), `IBM Plex Sans` (Body).
+## Roles (match the backend design)
+EMPLOYEE, MANAGER, ADMIN, AUDITOR, SECURITY_OFFICER. Classifications: INTERNAL, CONFIDENTIAL, RESTRICTED.

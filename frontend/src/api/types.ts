@@ -10,7 +10,6 @@ export interface User {
   email: string;
   role: UserRole;
   did: string;
-  clearanceLevel: SecurityClassification;
   department: string;
   passkeysCount: number;
   totpEnabled: boolean;

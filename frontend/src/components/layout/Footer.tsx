@@ -20,17 +20,17 @@ export const Footer: React.FC = () => {
                 AEGIS<span className="text-muted-blue">CHAIN</span>
               </span>
               <span className="text-[10px] px-2 py-0.5 bg-bel-navy-dark border border-muted-blue/40 text-muted-blue font-bold uppercase">
-                BEL DEFENCE
+                AEGISCHAIN
               </span>
             </div>
 
             <p className="text-parchment/80 text-xs sm:text-[13px] leading-relaxed max-w-md">
-              Zero-trust identity custody, real-time cryptographic integrity verification, and immutable access governance engineered for Bharat Electronics Limited (BEL).
+              Zero-trust identity custody, real-time cryptographic integrity verification, and immutable access governance designed for engineering teams that protect confidential documents.
             </p>
 
             <div className="pt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-blue">
               <span className="border border-muted-blue/30 px-2 py-0.5 bg-bel-navy-dark uppercase">
-                RESTRICTED // SOVEREIGN IP PROTOCOL
+                CONFIDENTIAL // IP PROTOCOL
               </span>
               <span className="border border-muted-blue/30 px-2 py-0.5 bg-bel-navy-dark uppercase">
                 ZERO DATA EXPOSURE
@@ -93,7 +93,7 @@ export const Footer: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-muted-blue animate-pulse" />
                 <span className="font-bold text-parchment text-[11px] uppercase">
-                  DEFENCE PROTOCOL ACTIVE
+                  SECURITY PROTOCOL ACTIVE
                 </span>
               </div>
               <p className="text-[10px] text-parchment/70 leading-normal">
@@ -106,7 +106,7 @@ export const Footer: React.FC = () => {
                 to="/dashboard"
                 className="w-full inline-flex items-center justify-between px-3 py-2 bg-muted-blue text-bel-navy font-bold text-xs uppercase border border-bel-navy hover:bg-muted-blue-light transition-colors shadow-ink-sm"
               >
-                <span>Enter Defence Vault</span>
+                <span>Enter Secure Vault</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -116,7 +116,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Legal / Demarcation Bar */}
         <div className="mt-10 pt-4 border-t border-muted-blue/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-parchment/60">
           <div>
-            © Bharat Electronics Limited (BEL). Sovereign Defence Infrastructure.
+            © AegisChain · Prototype interface running on simulated data.
           </div>
           <div className="flex items-center gap-1.5 text-muted-blue">
             <ShieldCheck className="w-3.5 h-3.5" />

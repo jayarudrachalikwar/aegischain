@@ -57,35 +57,23 @@ export const ClassificationBadge: React.FC<{ classification: SecurityClassificat
   className,
 }) => {
   switch (classification) {
-    case 'TOP_SECRET':
+    case 'RESTRICTED':
       return (
         <span className={clsx('inline-flex items-center font-mono text-[11px] font-bold px-2 py-0.5 bg-red-950 text-red-300 border border-signal-red tracking-wider uppercase', className)}>
-          ● TOP SECRET
-        </span>
-      );
-    case 'SECRET':
-      return (
-        <span className={clsx('inline-flex items-center font-mono text-[11px] font-bold px-2 py-0.5 bg-amber-950 text-amber-300 border border-amber-500/80 tracking-wider uppercase', className)}>
-          ▲ SECRET
+          ● RESTRICTED
         </span>
       );
     case 'CONFIDENTIAL':
       return (
-        <span className={clsx('inline-flex items-center font-mono text-[11px] font-bold px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-500/80 tracking-wider uppercase', className)}>
-          ◆ CONFIDENTIAL
+        <span className={clsx('inline-flex items-center font-mono text-[11px] font-bold px-2 py-0.5 bg-amber-950 text-amber-300 border border-amber-500/80 tracking-wider uppercase', className)}>
+          ▲ CONFIDENTIAL
         </span>
       );
-    case 'RESTRICTED':
-      return (
-        <span className={clsx('inline-flex items-center font-mono text-[11px] font-bold px-2 py-0.5 bg-slate-900 text-slate-300 border border-slate-600 tracking-wider uppercase', className)}>
-          ■ RESTRICTED
-        </span>
-      );
-    case 'UNCLASSIFIED':
+    case 'INTERNAL':
     default:
       return (
         <span className={clsx('inline-flex items-center font-mono text-[11px] font-medium px-2 py-0.5 bg-stone-200 text-stone-700 border border-stone-400 tracking-wider uppercase', className)}>
-          ○ UNCLASSIFIED
+          ○ INTERNAL
         </span>
       );
   }

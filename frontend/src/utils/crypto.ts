@@ -46,5 +46,5 @@ export function formatTruncatedHash(hash: string, lead = 8, trail = 8): string {
 
 export function generateMockDid(role: string, name: string): string {
   const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-  return `did:aegis:bel:${role.toLowerCase()}:${clean.slice(0, 8)}`;
+  return `did:aegis:${role.toLowerCase()}:${clean.slice(0, 8)}`;
 }

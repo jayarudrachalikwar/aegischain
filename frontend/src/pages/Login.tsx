@@ -124,7 +124,7 @@ export const Login: React.FC = () => {
                     placeholder="e.g. vrathore"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    helperText="Belonging to the authorized defence organisation roster"
+                    helperText="Belonging to the authorized organisation roster"
                     mono
                   />
 
@@ -239,7 +239,7 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="mt-4 pt-3 border-t border-muted-blue/20 font-mono text-[10px] text-muted-blue">
-              <span>Bharat Electronics Limited · Defence Identity Management</span>
+              <span>AegisChain · Identity Management</span>
             </div>
           </Card>
         </div>

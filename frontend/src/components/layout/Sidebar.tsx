@@ -18,6 +18,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { ROUTE_ROLES } from '../../config/access';
 import { useAlerts } from '../../context/AlertContext';
 import { clsx } from 'clsx';
 
@@ -46,38 +47,38 @@ export const Sidebar: React.FC = () => {
     {
       group: 'COMMAND & OVERVIEW',
       items: [
-        { path: '/dashboard', label: '01. Dashboard', icon: LayoutDashboard, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'AUDITOR', 'SECURITY_OFFICER'] },
+        { path: '/dashboard', label: '01. Dashboard', icon: LayoutDashboard, roles: ROUTE_ROLES['/dashboard'] },
       ]
     },
     {
       group: 'ASSET CUSTODY',
       items: [
-        { path: '/assets', label: '02. My Assets', icon: ShieldCheck, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'AUDITOR', 'SECURITY_OFFICER'] },
-        { path: '/upload', label: '03. Upload Asset', icon: Upload, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
-        { path: '/request-access', label: '04. Request Access', icon: FileKey, roles: ['EMPLOYEE', 'MANAGER'] },
+        { path: '/assets', label: '02. My Assets', icon: ShieldCheck, roles: ROUTE_ROLES['/assets'] },
+        { path: '/upload', label: '03. Upload Asset', icon: Upload, roles: ROUTE_ROLES['/upload'] },
+        { path: '/request-access', label: '04. Request Access', icon: FileKey, roles: ROUTE_ROLES['/request-access'] },
       ]
     },
     {
       group: 'GOVERNANCE & GRANTS',
       items: [
-        { path: '/approvals', label: '05. Approvals Queue', icon: CheckSquare, roles: ['MANAGER', 'ADMIN'], badge: 'REQ' },
-        { path: '/access-management', label: '06. Access Grants', icon: KeyRound, roles: ['MANAGER', 'ADMIN', 'SECURITY_OFFICER'] },
+        { path: '/approvals', label: '05. Approvals Queue', icon: CheckSquare, roles: ROUTE_ROLES['/approvals'], badge: 'REQ' },
+        { path: '/access-management', label: '06. Access Grants', icon: KeyRound, roles: ROUTE_ROLES['/access-management'] },
       ]
     },
     {
-      group: 'AUDIT & DEFENCE MONITOR',
+      group: 'AUDIT & SECURITY MONITOR',
       items: [
-        { path: '/audit-logs', label: '07. Audit Ledger', icon: History, roles: ['AUDITOR', 'ADMIN', 'SECURITY_OFFICER', 'MANAGER', 'EMPLOYEE'], highlight: role === 'AUDITOR' },
-        { path: '/security-alerts', label: '08. Security Alerts', icon: AlertOctagon, roles: ['SECURITY_OFFICER', 'ADMIN', 'AUDITOR', 'MANAGER', 'EMPLOYEE'], alertCount: unresolvedCount },
-        { path: '/users', label: '09. User Identities', icon: Users, roles: ['ADMIN', 'SECURITY_OFFICER', 'AUDITOR'] },
+        { path: '/audit-logs', label: '07. Audit Ledger', icon: History, roles: ROUTE_ROLES['/audit-logs'], highlight: role === 'AUDITOR' },
+        { path: '/security-alerts', label: '08. Security Alerts', icon: AlertOctagon, roles: ROUTE_ROLES['/security-alerts'], alertCount: unresolvedCount },
+        { path: '/users', label: '09. User Identities', icon: Users, roles: ROUTE_ROLES['/users'] },
       ]
     },
     {
       group: 'IDENTITY & CREDENTIALS',
       items: [
-        { path: '/passkeys', label: '10. Passkey Setup', icon: Fingerprint, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'AUDITOR', 'SECURITY_OFFICER'] },
-        { path: '/mfa', label: '11. MFA / TOTP Setup', icon: QrCode, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'AUDITOR', 'SECURITY_OFFICER'] },
-        { path: '/profile', label: '12. Profile / Security', icon: UserCog, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'AUDITOR', 'SECURITY_OFFICER'] },
+        { path: '/passkeys', label: '10. Passkey Setup', icon: Fingerprint, roles: ROUTE_ROLES['/passkeys'] },
+        { path: '/mfa', label: '11. MFA / TOTP Setup', icon: QrCode, roles: ROUTE_ROLES['/mfa'] },
+        { path: '/profile', label: '12. Profile / Security', icon: UserCog, roles: ROUTE_ROLES['/profile'] },
       ]
     }
   ];
@@ -121,7 +122,7 @@ export const Sidebar: React.FC = () => {
               {currentUser?.displayName || 'Unknown Operator'}
             </p>
             <p className="font-mono text-[10px] text-stone-300 truncate mt-0.5">
-              {currentUser?.did || 'did:aegis:bel:offline'}
+              {currentUser?.did || 'did:aegis:offline'}
             </p>
           </div>
 
