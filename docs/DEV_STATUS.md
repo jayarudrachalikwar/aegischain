@@ -5,6 +5,14 @@ _Last updated: 2026-10-09_
 ## Current phase
 **M0 (repository and backend foundation): complete.** All acceptance criteria met and verified (details below). Files are staged for review; nothing is committed or pushed.
 
+## Frontend integration status (updated 2026-10-09)
+- Frontend PR #1 merged (`main` = `128821c` + local alignment edits, **uncommitted**). `npm ci`, `tsc -b`, `oxlint` (0 errors, 107 warnings) and `vite build` pass. **Not verified in a browser** (Chrome extension unavailable); no frontend tests exist.
+- Aligned with our design: Fabric wording (no Besu/IBFT/contract address), no organization branding, 5 roles, INTERNAL/CONFIDENTIAL/RESTRICTED classifications (user "clearance" removed), role-to-screen rules per `API_CONTRACT.md` (`frontend/src/config/access.ts`), signed-out start + `RequireRole` guard (UX only), visible "simulated data" banner, honest README, contract-style transport (`http()`: same-origin `/api/v1`, cookies, CSRF header, contract errors) and Vite dev proxy.
+- Bug fixed: seeded demo assets had fake stored hashes, so integrity verification always failed; hashes are now the real SHA-256 of the sample content.
+- Still simulated: passkeys, TOTP (any 6 digits), encryption, blockchain panel numbers, all lists. Demo mode remains the default and never calls the backend.
+- Still to do (M12): endpoint/shape mapping to `API_CONTRACT.md` (table in `docs/FRONTEND_INTEGRATION.md`); global lockdown has no contract equivalent (decision needed); mock sample documents still use radar/EW themes (fictional).
+- Evaluation material: `docs/EVALUATION_GUIDE.md`, `docs/DEMO_SCRIPT.md`.
+
 ## Repository state
 - Local git repo (`main`), remote `origin` = https://github.com/jayarudrachalikwar/aegischain (**public**, empty). Nothing staged, committed or pushed.
 - Local path is under OneDrive (recommend moving before heavy use).
