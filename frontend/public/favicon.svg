@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Outer Technical Ring -->
+  <circle cx="32" cy="32" r="30" stroke="#123F56" stroke-width="2" stroke-dasharray="4 2" />
+
+  <!-- Shield Outline -->
+  <path d="M32 10 L48 16 V32 C48 42 41 50 32 54 C23 50 16 42 16 32 V16 Z"
+        fill="#123F56" stroke="#151515" stroke-width="2" />
+
+  <!-- Hash & Chain Knot / Inner Core -->
+  <path d="M26 24 H38 M26 32 H38 M26 40 H38 M30 20 V44 M34 20 V44"
+        stroke="#F2E8C9" stroke-width="2" stroke-linecap="square" />
+
+  <!-- Signal Red Verification Indicator -->
+  <circle cx="44" cy="20" r="4.5" fill="#E7442E" stroke="#151515" stroke-width="1.5" />
+  <circle cx="44" cy="20" r="1.5" fill="#FFF8E7" />
+</svg>
