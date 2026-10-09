@@ -1,0 +1,53 @@
+# Secrets and environment (examples are allowed)
+.env
+.env.*
+!.env.example
+infra/secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Hyperledger Fabric generated identities / crypto material / wallets
+**/organizations/
+**/crypto-config/
+**/channel-artifacts/
+**/wallet/
+**/keystore/
+**/priv_sk
+fabric-samples/
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Logs and temp
+logs/
+*.log
+npm-debug.log*
+tmp/
+temp/
+*.tmp
+
+# Local data volumes
+infra/data/
+infra/volumes/
+pgdata/
+minio-data/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code local settings
+.claude/settings.local.json
+backend/src/generated/

@@ -1,0 +1,79 @@
+# AegisChain 2.0 - local development infrastructure (PostgreSQL + MinIO only).
+# Credentials come from Docker file-based secrets in infra/secrets/ (git-ignored).
+# Generate them first:  node infra/scripts/gen-secrets.mjs
+# Fabric is intentionally NOT part of this file (see docs/IMPLEMENTATION_PLAN.md, M9).
+name: aegischain
+
+services:
+  postgres:
+    image: postgres:16.9-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aegis}
+      POSTGRES_DB: ${POSTGRES_DB:-aegischain}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks: [aegis]
+
+  # MinIO community images are no longer published (Docker Hub/Quay). We use the Chainguard-built
+  # distroless image, pinned by digest. Verify/refresh the pin: see infra/README.md ("Refreshing the MinIO pin").
+  # Pinned: cgr.dev/chainguard/minio:latest -> MinIO RELEASE.2026-09-22T19-25-18Z (pulled 2026-10-09)
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:f74600a1a46330cdbda1ef760d17a96bd6e0f4a6f0a2c49792ca3ee7e4c6fa18
+    restart: unless-stopped
+    # The image ENTRYPOINT is /usr/bin/minio, so only arguments go here. Runs as uid 65532 (non-root).
+    command: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER_FILE: /run/secrets/minio_root_user
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_root_password
+    secrets:
+      - minio_root_user
+      - minio_root_password
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      # Distroless image: no curl/wget. bash /dev/tcp sends a real GET to MinIO's readiness endpoint
+      # and requires HTTP 200, so this tests service readiness, not just that the process exists.
+      test:
+        - CMD
+        - /usr/bin/bash
+        - -c
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf "GET /minio/health/ready HTTP/1.0\r\nHost: localhost\r\n\r\n" >&3 &&
+          read -r status <&3 && [[ "$$status" == *" 200 "* ]]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks: [aegis]
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
+  minio_root_user:
+    file: ./secrets/minio_root_user
+  minio_root_password:
+    file: ./secrets/minio_root_password
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  aegis:
+    name: aegis

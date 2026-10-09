@@ -1,0 +1,12 @@
+// AegisChain 2.0 - Prisma schema.
+// M0: no domain models yet (users, sessions, audit... arrive in M1+).
+// The connection URL is NOT stored here; it is supplied via prisma.config.ts from the environment.
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
