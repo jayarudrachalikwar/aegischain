@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-parchment text-bel-navy antialiased selection:bg-bel-navy selection:text-parchment;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .font-editorial {
+    @apply font-serif tracking-tight;
+  }
+
+  code, pre, .font-security {
+    @apply font-mono uppercase tracking-wider;
+  }
+}
+
+/* Custom technical scrollbar in Combo 2 (#0C2C55, #629FAD) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #081D39;
+}
+::-webkit-scrollbar-thumb {
+  background: #0C2C55;
+  border: 1px solid #629FAD;
+  border-radius: 1px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #629FAD;
+}
