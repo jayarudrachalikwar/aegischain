@@ -115,7 +115,7 @@ export const MfaSetup: React.FC = () => {
             theme="white"
           >
             <p className="font-mono text-xs text-stone-700 mb-4 leading-relaxed">
-              Open your approved authenticator (Google Authenticator, Aegis Authenticator, or YubiKey Authenticator) and scan the QR matrix:
+              Open your defence-approved authenticator (Google Authenticator, Aegis Authenticator, or YubiKey Authenticator) and scan the QR matrix:
             </p>
 
             {/* Generated Technical SVG QR Code Matrix */}

@@ -1,7 +1,15 @@
 import { SecurityClassification } from '../utils/formatters';
 export type { SecurityClassification };
 
-export type UserRole = 'EMPLOYEE' | 'MANAGER' | 'ADMIN' | 'AUDITOR' | 'SECURITY_OFFICER';
+export type UserRole =
+  | 'EMPLOYEE'
+  | 'MANAGER'
+  | 'ADMIN'
+  | 'AUDITOR'
+  | 'SECURITY_OFFICER'
+  | 'QA_VERIFIER'
+  | 'DEPT_MANAGER'
+  | 'EXTERNAL_COLLABORATOR';
 
 export interface User {
   id: string;
@@ -10,6 +18,7 @@ export interface User {
   email: string;
   role: UserRole;
   did: string;
+  clearanceLevel: SecurityClassification;
   department: string;
   passkeysCount: number;
   totpEnabled: boolean;

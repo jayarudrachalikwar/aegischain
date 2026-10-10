@@ -90,7 +90,7 @@ export const AuditLogs: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs text-signal-red font-bold uppercase tracking-wider">
-              INDEPENDENT AUDIT //
+              INDEPENDENT DEFENCE AUDIT //
             </span>
             <Badge variant="navy">BESU L2 CONSORTIUM</Badge>
           </div>

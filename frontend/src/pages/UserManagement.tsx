@@ -7,7 +7,7 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input, Select } from '../components/common/Input';
 import { Modal } from '../components/common/Modal';
-import { Badge } from '../components/common/Badge';
+import { Badge, ClassificationBadge } from '../components/common/Badge';
 import { generateMockDid } from '../utils/crypto';
 import { formatTimestamp } from '../utils/formatters';
 
@@ -22,6 +22,7 @@ export const UserManagement: React.FC = () => {
   const [newDisplayName, setNewDisplayName] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('EMPLOYEE');
   const [newDept, setNewDept] = useState('Radar & Sensor Systems');
+  const [newClearance, setNewClearance] = useState<'RESTRICTED' | 'CONFIDENTIAL' | 'SECRET' | 'TOP_SECRET'>('SECRET');
 
   // Edit Role Modal
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -54,9 +55,10 @@ export const UserManagement: React.FC = () => {
       id: `usr-00${users.length + 1}`,
       username: newUsername,
       displayName: newDisplayName,
-      email: `${newUsername}@aegis.example.com`,
+      email: `${newUsername}@aegis.bel.internal`,
       role: newRole,
       did,
+      clearanceLevel: newClearance,
       department: newDept,
       passkeysCount: 1,
       totpEnabled: true,
@@ -136,7 +138,7 @@ export const UserManagement: React.FC = () => {
                 <tr className="border-b-2 border-secure-black bg-stone-100 text-stone-700 uppercase tracking-wider text-[11px]">
                   <th className="py-2.5 px-3">Operator Identity</th>
                   <th className="py-2.5 px-3">Role Code</th>
-                  <th className="py-2.5 px-3">Department</th>
+                  <th className="py-2.5 px-3">Clearance</th>
                   <th className="py-2.5 px-3">Decentralized DID</th>
                   <th className="py-2.5 px-3">Auth Hardware</th>
                   <th className="py-2.5 px-3 text-right">Governance</th>
@@ -157,7 +159,7 @@ export const UserManagement: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-3">
-                      <span className="font-mono text-[11px] text-stone-700">{u.department}</span>
+                      <ClassificationBadge classification={u.clearanceLevel} />
                     </td>
 
                     <td className="py-3 px-3">
@@ -199,7 +201,7 @@ export const UserManagement: React.FC = () => {
       {/* Separation of Duties Note */}
       <Card theme="parchment">
         <div className="font-mono text-xs text-stone-800 space-y-1">
-          <p className="font-bold text-bel-navy uppercase">SEPARATION OF DUTIES ARCHITECTURE:</p>
+          <p className="font-bold text-bel-navy uppercase">BEL SEPARATION OF POWERS ARCHITECTURE:</p>
           <p>• The Admin role issues and manages cryptographic identities and revokes passkeys.</p>
           <p>• The Admin role has zero authority to approve access grants or decrypt off-chain payloads without an explicit grant from an authorized Manager.</p>
         </div>
@@ -244,6 +246,16 @@ export const UserManagement: React.FC = () => {
               <option value="SECURITY_OFFICER">SECURITY_OFFICER</option>
             </Select>
 
+            <Select
+              label="Security Clearance"
+              value={newClearance}
+              onChange={(e) => setNewClearance(e.target.value as any)}
+            >
+              <option value="RESTRICTED">RESTRICTED</option>
+              <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+              <option value="SECRET">SECRET</option>
+              <option value="TOP_SECRET">TOP SECRET</option>
+            </Select>
           </div>
 
           <Select
@@ -253,7 +265,7 @@ export const UserManagement: React.FC = () => {
           >
             <option value="Radar & Sensor Systems">Radar & Sensor Systems</option>
             <option value="Electronic Warfare Directorate">Electronic Warfare Directorate</option>
-            <option value="Security Operations Center">Security Operations Center</option>
+            <option value="Cyber Defence Command & SOC">Cyber Defence Command & SOC</option>
             <option value="Avionics & Missile Guidance">Avionics & Missile Guidance</option>
           </Select>
 

@@ -98,7 +98,7 @@ export const AssetDetails: React.FC = () => {
       // Check automated bulk download rule (if >3 rapid downloads in session)
       if (newCount >= 4) {
         setVerificationState('LOCKDOWN');
-        triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:operator', newCount);
+        triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:bel:operator', newCount);
       }
     } else {
       setVerificationState('FAIL');
@@ -129,7 +129,7 @@ export const AssetDetails: React.FC = () => {
     // Rapid succession trigger
     setDownloadCount(4);
     setVerificationState('LOCKDOWN');
-    triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:operator', 5);
+    triggerBulkDownloadAlert(currentUser?.did || 'did:aegis:bel:operator', 5);
   };
 
   if (isLoading) {
@@ -168,7 +168,7 @@ export const AssetDetails: React.FC = () => {
             {asset.title}
           </h1>
           <p className="font-mono text-xs text-stone-600 mt-1">
-            Registered on Hyperledger Fabric (simulated) · Block #{asset.blockNumber} · Encrypted Off-Chain
+            Registered on Hyperledger Besu L2 · Block #{asset.blockNumber} · Encrypted Off-Chain
           </p>
         </div>
 

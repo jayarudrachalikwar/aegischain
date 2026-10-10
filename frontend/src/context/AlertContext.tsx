@@ -29,7 +29,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const toggleLockdown = async (reason: string) => {
     const enactedBy = currentUser?.displayName || 'Security Operator';
-    const actorDid = currentUser?.did || 'did:aegis:sec:operator';
+    const actorDid = currentUser?.did || 'did:aegis:bel:sec:operator';
     const newState = await apiClient.alerts.toggleLockdown(enactedBy, actorDid, reason);
     setIsGlobalLockdown(newState);
     refreshAlerts();
@@ -45,7 +45,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     mockStore.recordSecurityIncident({
       severity: 'CRITICAL',
       alertType: 'INTEGRITY_MISMATCH',
-      actorDid: currentUser?.did || 'did:aegis:client:local',
+      actorDid: currentUser?.did || 'did:aegis:bel:client:local',
       actorName: currentUser?.displayName || 'Active Session',
       assetId,
       assetName,

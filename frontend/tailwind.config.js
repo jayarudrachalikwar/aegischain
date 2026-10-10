@@ -4,11 +4,21 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
-      // STRICT COMBO 2: #0C2C55, #629FAD, #EDEDCE
       colors: {
+        tempo: {
+          bg: '#f3f3f3',
+          surface: '#f0f0f0',
+          tint: '#ebebeb',
+          body: '#4d4d4d',
+          accent: '#0d0d0d',
+          dark: '#0d0d0d',
+          pine: '#183030',
+          border: '#c0c0c0',
+          charcoal: '#484848',
+          muted: '#909090',
+        },
         parchment: {
           DEFAULT: '#EDEDCE',
           light: '#F8F8E7',
@@ -32,11 +42,6 @@ export default {
           dark: '#477C88',
         },
         'warm-white': '#F8F8E7',
-        'verification-green': {
-          DEFAULT: '#629FAD',
-          light: '#84BCC8',
-          dark: '#477C88',
-        },
         defence: {
           950: '#051326',
           900: '#0C2C55',
@@ -45,19 +50,37 @@ export default {
           700: '#1D5399',
           border: '#629FAD',
           accent: '#629FAD',
-        }
+        },
       },
       fontFamily: {
-        serif: ['Instrument Serif', 'Georgia', 'serif'],
-        mono: ['"IBM Plex Mono"', 'Menlo', 'monospace'],
-        sans: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        heading: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+      },
+      letterSpacing: {
+        tightest: '-1.92px',
+        eyebrow: '0.08em',
+      },
+      lineHeight: {
+        hero: '1',
       },
       boxShadow: {
-        'ink': '3px 3px 0px 0px #0C2C55',
-        'ink-sm': '2px 2px 0px 0px #0C2C55',
-        'ink-lg': '5px 5px 0px 0px #0C2C55',
-        'defence-glow': '0 0 20px -5px rgba(98, 159, 173, 0.4)',
-      }
+        none: 'none',
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        'pulse-subtle': {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '1' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 32s linear infinite',
+        'marquee-fast': 'marquee 20s linear infinite',
+        'pulse-subtle': 'pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
     },
   },
   plugins: [],

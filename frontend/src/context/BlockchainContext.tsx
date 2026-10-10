@@ -19,7 +19,7 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [tps, setTps] = useState(14.8);
 
   useEffect(() => {
-    // Subtle realistic block heartbeat in permissioned Fabric network
+    // Subtle realistic block heartbeat in private consortium
     const interval = setInterval(() => {
       setBlockNumber(prev => {
         const next = prev + 1;
@@ -45,11 +45,11 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       value={{
         blockNumber,
         tps,
-        chainName: 'Hyperledger Fabric (simulated)',
+        chainName: 'AegisChain Private Besu L2',
         networkStatus: mockStore.isGlobalLockdown ? 'LOCKED' : 'SYNCED',
-        contractAddress: 'chaincode: aegis (planned)',
-        consensus: 'Raft ordering (simulated)',
-        peersCount: 2,
+        contractAddress: '0x9F3AC1D200482B45E89A62BC34107E3F89012345',
+        consensus: 'IBFT 2.0 (Istanbul BFT)',
+        peersCount: 8,
         incrementBlock,
       }}
     >

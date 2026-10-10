@@ -1,4 +1,4 @@
-export type SecurityClassification = 'INTERNAL' | 'CONFIDENTIAL' | 'RESTRICTED';
+export type SecurityClassification = 'UNCLASSIFIED' | 'RESTRICTED' | 'CONFIDENTIAL' | 'SECRET' | 'TOP_SECRET';
 
 export function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
@@ -42,12 +42,36 @@ export function getClassificationColor(level: SecurityClassification): {
   border: string;
 } {
   switch (level) {
-    case 'RESTRICTED':
-      return { bg: 'bg-red-950/80', text: 'text-signal-red', border: 'border-signal-red' };
+    case 'TOP_SECRET':
+      return {
+        bg: 'bg-red-950/80',
+        text: 'text-signal-red',
+        border: 'border-signal-red',
+      };
+    case 'SECRET':
+      return {
+        bg: 'bg-amber-950/60',
+        text: 'text-amber-400',
+        border: 'border-amber-500/60',
+      };
     case 'CONFIDENTIAL':
-      return { bg: 'bg-amber-950/60', text: 'text-amber-400', border: 'border-amber-500/60' };
-    case 'INTERNAL':
+      return {
+        bg: 'bg-blue-950/60',
+        text: 'text-cyan-400',
+        border: 'border-cyan-500/60',
+      };
+    case 'RESTRICTED':
+      return {
+        bg: 'bg-slate-900',
+        text: 'text-slate-300',
+        border: 'border-slate-600',
+      };
+    case 'UNCLASSIFIED':
     default:
-      return { bg: 'bg-stone-900/60', text: 'text-stone-400', border: 'border-stone-700' };
+      return {
+        bg: 'bg-stone-900/60',
+        text: 'text-stone-400',
+        border: 'border-stone-700',
+      };
   }
 }

@@ -1,38 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');
-@import './styles/tokens.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #f3f3f3;
+  }
+
   body {
-    @apply font-sans bg-parchment text-bel-navy antialiased selection:bg-bel-navy selection:text-parchment;
-    min-height: 100vh;
+    background-color: #f3f3f3;
+    color: #4d4d4d;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    selection-background-color: #0d0d0d;
+    selection-color: #ffffff;
   }
 
-  h1, h2, h3, .font-editorial {
-    @apply font-serif tracking-tight;
+  ::selection {
+    background-color: #0d0d0d;
+    color: #ffffff;
   }
 
-  code, pre, .font-security {
-    @apply font-mono uppercase tracking-wider;
+  h1, h2, h3, h4 {
+    color: #0d0d0d;
+    font-weight: 300;
   }
 }
 
-/* Custom technical scrollbar in Combo 2 (#0C2C55, #629FAD) */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Accessible focus outline */
+:focus-visible {
+  outline: 2px solid #0d0d0d;
+  outline-offset: 2px;
 }
-::-webkit-scrollbar-track {
-  background: #081D39;
-}
-::-webkit-scrollbar-thumb {
-  background: #0C2C55;
-  border: 1px solid #629FAD;
-  border-radius: 1px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #629FAD;
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

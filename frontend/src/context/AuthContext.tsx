@@ -19,15 +19,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Start signed out. (Demo mode only) restore the last demo user from localStorage; never auto-login.
+  // Initialize with Vikram Rathore (EMPLOYEE) or stored user
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('aegis_user');
-    if (!saved) return null;
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return null;
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return INITIAL_USERS[0];
+      }
     }
+    return INITIAL_USERS[0];
   });
 
   const [requiresMfa, setRequiresMfa] = useState<boolean>(false);

@@ -57,7 +57,7 @@ export const RequestAccess: React.FC = () => {
         assetId: selectedAssetId,
         requesterId: currentUser?.id || 'usr-001',
         requesterName: currentUser?.displayName || 'Authorized Engineer',
-        requesterDid: currentUser?.did || 'did:aegis:emp:vrathore',
+        requesterDid: currentUser?.did || 'did:aegis:bel:emp:vrathore',
         permission,
         durationHours: parseInt(durationHours),
         justification,
@@ -66,7 +66,7 @@ export const RequestAccess: React.FC = () => {
 
       incrementBlock();
 
-      setSuccessMessage('Access request submitted to the approval queue. Pending Manager authorization.');
+      setSuccessMessage('Access request submitted to smart contract approval queue. Pending Manager authorization.');
       setTimeout(() => {
         navigate('/dashboard');
       }, 1200);
@@ -200,7 +200,7 @@ export const RequestAccess: React.FC = () => {
                 required
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
-                placeholder="State project purpose, test bench reference, or business justification..."
+                placeholder="State mission mandate, test bench reference, or specific defence directive..."
                 className="w-full px-3 py-2 text-xs bg-warm-white text-secure-black border-[1.5px] border-secure-black shadow-ink-sm font-mono focus:outline-none focus:ring-1 focus:ring-signal-red"
               />
             </div>

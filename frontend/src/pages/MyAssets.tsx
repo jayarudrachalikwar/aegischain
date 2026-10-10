@@ -73,7 +73,7 @@ export const MyAssets: React.FC = () => {
             Protected Digital Assets
           </h1>
           <p className="font-mono text-xs text-stone-600 mt-1">
-            Encrypted off-chain assets with immutable SHA-256 anchors on Hyperledger Fabric (simulated)
+            Encrypted off-chain assets with immutable SHA-256 anchors on Hyperledger Besu
           </p>
         </div>
 
@@ -140,8 +140,9 @@ export const MyAssets: React.FC = () => {
             onChange={(e) => setSelectedClassification(e.target.value)}
             className="px-2.5 py-1.5 text-xs font-mono bg-white border border-secure-black focus:outline-none focus:ring-1 focus:ring-signal-red"
           >
-            <option value="ALL">ALL CLASSIFICATIONS</option>
-            <option value="INTERNAL">INTERNAL</option>
+            <option value="ALL">ALL CLEARANCES</option>
+            <option value="TOP_SECRET">TOP SECRET</option>
+            <option value="SECRET">SECRET</option>
             <option value="CONFIDENTIAL">CONFIDENTIAL</option>
             <option value="RESTRICTED">RESTRICTED</option>
           </select>

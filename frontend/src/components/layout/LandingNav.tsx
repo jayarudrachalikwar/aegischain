@@ -37,7 +37,7 @@ export const LandingNav: React.FC = () => {
             AEGIS<span className="text-muted-blue">CHAIN</span>
           </span>
           <span className="font-mono text-[9px] px-1.5 py-0.5 bg-bel-navy/10 text-bel-navy border border-bel-navy/30 font-semibold tracking-wider hidden sm:inline-block">
-            AEGISCHAIN
+            BEL DEFENCE
           </span>
         </Link>
 
@@ -94,7 +94,7 @@ export const LandingNav: React.FC = () => {
               onClick={() => setMobileMenuOpen(false)}
               className="block w-full text-center py-2 bg-bel-navy text-parchment border border-bel-navy font-bold uppercase shadow-ink-sm"
             >
-              Enter Secure Vault
+              Enter Defence Vault
             </Link>
           </div>
         </div>

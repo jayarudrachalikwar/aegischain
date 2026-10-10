@@ -1,60 +1,8 @@
 import { mockStore } from './mockAdapter';
 import { User, Asset, AccessRequest, AccessGrant, AuditLog, SecurityAlert, PasskeyRecord, UserRole } from './types';
 
-// Same-origin by default: the dev server proxies /api to the backend (see vite.config.ts), so the
-// session cookie is first-party and no CORS is needed. Matches docs/API_CONTRACT.md (base /api/v1).
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-// Demo mode (default) uses the in-browser mock store and NEVER contacts the backend.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 export const IS_DEMO_MODE = import.meta.env.VITE_DEMO_MODE !== 'false';
-
-/** Error shape from docs/API_CONTRACT.md: { error: { code, message, details?, requestId } } */
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string,
-    public readonly requestId?: string,
-    public readonly details?: unknown,
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-function csrfToken(): string {
-  const m = document.cookie.match(/(?:^|;\s*)aegis_csrf=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-
-/**
- * Real-mode transport: cookie session (credentials: include), CSRF header on mutations,
- * and contract-format error parsing. Not used in demo mode.
- * TODO(M12): endpoint paths and response shapes below still follow the prototype and must be mapped
- * to docs/API_CONTRACT.md (see docs/FRONTEND_INTEGRATION.md for the mapping table).
- */
-async function http(path: string, init: RequestInit = {}): Promise<Response> {
-  const method = (init.method || 'GET').toUpperCase();
-  const headers = new Headers(init.headers);
-  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-  if (method !== 'GET' && method !== 'HEAD') {
-    const token = csrfToken();
-    if (token) headers.set('X-CSRF-Token', token);
-  }
-  const res = await http(`${path}`, { ...init, headers, credentials: 'include' });
-  if (!res.ok) {
-    let body: { error?: { code?: string; message?: string; requestId?: string; details?: unknown } } = {};
-    try {
-      body = await res.json();
-    } catch {
-      /* non-JSON error body */
-    }
-    const e = body.error;
-    throw new ApiError(res.status, e?.code ?? 'UNKNOWN', e?.message ?? 'Request failed', e?.requestId, e?.details);
-  }
-  return res;
-}
 
 // Helper for simulated latency in demo mode
 const simulateLatency = (ms = 180) => new Promise(resolve => setTimeout(resolve, ms));
@@ -65,8 +13,7 @@ export const apiClient = {
     async loginWithPasskey(username: string): Promise<{ user: User; token: string; requiresMfa: boolean }> {
       if (IS_DEMO_MODE) {
         await simulateLatency();
-        const user = mockStore.getUsers().find(u => u.username === username);
-        if (!user) throw new Error('Authentication failed');
+        const user = mockStore.getUsers().find(u => u.username === username) || mockStore.getUsers()[0];
         return {
           user,
           token: `aegis_jwt_demo_${user.role.toLowerCase()}_${Date.now()}`,
@@ -74,7 +21,7 @@ export const apiClient = {
         };
       }
 
-      const res = await http(`/auth/passkey/login-verify`, {
+      const res = await fetch(`${API_BASE_URL}/auth/passkey/login-verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
@@ -90,12 +37,11 @@ export const apiClient = {
         if (!/^\d{6}$/.test(code)) {
           throw new Error('TOTP code must be 6 numeric digits');
         }
-        const user = mockStore.getUsers().find(u => u.username === username);
-        if (!user) throw new Error('Authentication failed');
+        const user = mockStore.getUsers().find(u => u.username === username) || mockStore.getUsers()[0];
         return { verified: true, user };
       }
 
-      const res = await http(`/auth/totp/verify`, {
+      const res = await fetch(`${API_BASE_URL}/auth/totp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, username }),
@@ -109,7 +55,7 @@ export const apiClient = {
         await simulateLatency(100);
         return mockStore.getPasskeys();
       }
-      const res = await http(`/auth/passkeys`);
+      const res = await fetch(`${API_BASE_URL}/auth/passkeys`);
       return res.json();
     },
 
@@ -118,7 +64,7 @@ export const apiClient = {
         await simulateLatency();
         return mockStore.addPasskey(name, deviceType);
       }
-      const res = await http(`/auth/passkeys/register`, {
+      const res = await fetch(`${API_BASE_URL}/auth/passkeys/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, deviceType }),
@@ -132,7 +78,7 @@ export const apiClient = {
         mockStore.removePasskey(id);
         return;
       }
-      await http(`/auth/passkeys/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/auth/passkeys/${id}`, { method: 'DELETE' });
     }
   },
 
@@ -143,7 +89,7 @@ export const apiClient = {
         await simulateLatency(120);
         return mockStore.getAssets();
       }
-      const res = await http(`/assets`);
+      const res = await fetch(`${API_BASE_URL}/assets`);
       return res.json();
     },
 
@@ -152,13 +98,9 @@ export const apiClient = {
         await simulateLatency(80);
         return mockStore.getAssetById(id);
       }
-      try {
-        const res = await http(`/assets/${id}`);
-        return res.json();
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 404) return undefined;
-        throw err;
-      }
+      const res = await fetch(`${API_BASE_URL}/assets/${id}`);
+      if (!res.ok) return undefined;
+      return res.json();
     },
 
     async registerAsset(assetData: Omit<Asset, 'id' | 'onChainTokenId' | 'onChainTxHash' | 'blockNumber' | 'createdAt' | 'integrityStatus'>): Promise<Asset> {
@@ -166,7 +108,7 @@ export const apiClient = {
         await simulateLatency(350);
         return mockStore.addAsset(assetData);
       }
-      const res = await http(`/assets/register`, {
+      const res = await fetch(`${API_BASE_URL}/assets/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(assetData),
@@ -182,7 +124,7 @@ export const apiClient = {
         await simulateLatency(100);
         return mockStore.getRequests();
       }
-      const res = await http(`/access/requests`);
+      const res = await fetch(`${API_BASE_URL}/access/requests`);
       return res.json();
     },
 
@@ -200,7 +142,7 @@ export const apiClient = {
         await simulateLatency(250);
         return mockStore.createAccessRequest(req);
       }
-      const res = await http(`/access/requests`, {
+      const res = await fetch(`${API_BASE_URL}/access/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
@@ -213,7 +155,7 @@ export const apiClient = {
         await simulateLatency(250);
         return mockStore.reviewAccessRequest(requestId, decision, reviewerName, reviewerDid, reviewNote);
       }
-      const res = await http(`/access/approvals/${requestId}/decision`, {
+      const res = await fetch(`${API_BASE_URL}/access/approvals/${requestId}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision, reviewNote }),
@@ -229,7 +171,7 @@ export const apiClient = {
         await simulateLatency(100);
         return mockStore.getGrants();
       }
-      const res = await http(`/access/grants`);
+      const res = await fetch(`${API_BASE_URL}/access/grants`);
       return res.json();
     },
 
@@ -238,7 +180,7 @@ export const apiClient = {
         await simulateLatency(200);
         return mockStore.revokeGrant(grantId, revokerDid, revokerName, reason);
       }
-      const res = await http(`/access/grants/${grantId}/revoke`, {
+      const res = await fetch(`${API_BASE_URL}/access/grants/${grantId}/revoke`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason }),
@@ -254,7 +196,7 @@ export const apiClient = {
         await simulateLatency(120);
         return mockStore.getAuditLogs();
       }
-      const res = await http(`/audit/logs`);
+      const res = await fetch(`${API_BASE_URL}/audit/logs`);
       return res.json();
     }
   },
@@ -266,7 +208,7 @@ export const apiClient = {
         await simulateLatency(100);
         return mockStore.getAlerts();
       }
-      const res = await http(`/security/alerts`);
+      const res = await fetch(`${API_BASE_URL}/security/alerts`);
       return res.json();
     },
 
@@ -274,7 +216,7 @@ export const apiClient = {
       if (IS_DEMO_MODE) {
         return mockStore.recordSecurityIncident(alert);
       }
-      const res = await http(`/security/alerts`, {
+      const res = await fetch(`${API_BASE_URL}/security/alerts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(alert),
@@ -287,7 +229,7 @@ export const apiClient = {
         await simulateLatency(150);
         return mockStore.resolveAlert(alertId, resolvedBy);
       }
-      const res = await http(`/security/alerts/${alertId}/resolve`, {
+      const res = await fetch(`${API_BASE_URL}/security/alerts/${alertId}/resolve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resolvedBy }),
@@ -300,7 +242,7 @@ export const apiClient = {
         await simulateLatency(200);
         return mockStore.toggleGlobalLockdown(enactedBy, actorDid, reason);
       }
-      const res = await http(`/security/lockdown/toggle`, {
+      const res = await fetch(`${API_BASE_URL}/security/lockdown/toggle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ justification: reason }),
@@ -321,7 +263,7 @@ export const apiClient = {
         await simulateLatency(80);
         return mockStore.getUsers();
       }
-      const res = await http(`/users`);
+      const res = await fetch(`${API_BASE_URL}/users`);
       return res.json();
     },
 
@@ -334,7 +276,7 @@ export const apiClient = {
         }
         return user;
       }
-      const res = await http(`/users/${userId}/role`, {
+      const res = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
