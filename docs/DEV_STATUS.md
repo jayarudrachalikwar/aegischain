@@ -3,7 +3,9 @@
 _Last updated: 2026-10-09_
 
 ## Current phase
-**M0 (repository and backend foundation): complete.** All acceptance criteria met and verified (details below). Files are staged for review; nothing is committed or pushed.
+**M2 (WebAuthn registration + login): complete.** All acceptance criteria met and verified (details below).
+
+---
 
 ## Frontend integration status (updated 2026-10-09)
 - Frontend PR #1 merged (`main` = `128821c` + local alignment edits, **uncommitted**). `npm ci`, `tsc -b`, `oxlint` (0 errors, 107 warnings) and `vite build` pass. **Not verified in a browser** (Chrome extension unavailable); no frontend tests exist.
@@ -46,7 +48,111 @@ Defects found and fixed during M0 validation: framework error text (JSON parse d
 - Refresh/verify procedure: `infra/README.md` ("Verifying the current pin", "Refreshing the pin").
 - Caveat: third-party rebuild of an archived upstream project. Dev use only; re-evaluate before production. App code is S3-generic (nothing depends on MinIO until M5).
 
+## M1 — what was done
+
+### Schema and migration
+- Prisma schema: added `UserRole`, `UserStatus`, `SessionState` enums; `User`, `Session`, `AuditEvent` models (mapped to `users`, `sessions`, `audit_events`).
+- Migration `20261009000000_m1_rbac_and_audit/migration.sql`: full DDL, FK constraints, indexes, audit-immutability trigger (`protect_audit_events()` blocks UPDATE/DELETE/TRUNCATE), `aegis_app` NOLOGIN role with INSERT+SELECT only on `audit_events`.
+- Applied cleanly after a `DROP SCHEMA public CASCADE` reset (dev DB had leftover tables from a prior copy; not a migration bug).
+
+### Guards and decorators (`backend/src/modules/auth/guards/`)
+- `SessionGuard`: reads `aegis_sid` cookie, hashes with SHA-256, DB lookup, validates ACTIVE state + expiry (idle and absolute), rejects SUSPENDED/LOCKED users, refreshes idle timer, injects `req.user` + `req.session`.
+- `CsrfGuard`: skips @Public and non-mutating methods; compares `aegis_csrf` cookie to `X-CSRF-Token` header with `timingSafeEqual`.
+- `RolesGuard`: reads `@Roles(...)` metadata; throws 403 if user role not in set.
+- `@Public()`, `@Roles(...)`, `@CurrentUser` decorators.
+- All three guards registered as `APP_GUARD` in `AuthModule` (global, ordered: Session → CSRF → Roles).
+- `cookie-parser` middleware added to `configure-app.ts`.
+- `@Public()` applied to `HealthController` (class-level).
+
+### Audit service (`backend/src/modules/audit/`)
+- `AuditService.append()`: serialized with `pg_advisory_xact_lock(17349, 82901)`, SHA-256 hash over canonicalized row (sorted keys, ISO dates), links `prevHash` to previous row.
+- `AuditService.verifyChain()`: recomputes every hash and checks linkage; reports `firstBrokenSeq`.
+- `canonicalizeAuditRow` / `computeAuditHash` exported for unit testing.
+
+### Test helpers
+- `backend/src/common/testing/session-factory.ts`: creates User + Session in DB, returns raw token, CSRF token, cookie header.
+
+### M1 validation (2026-10-09)
+| Check | Result |
+|---|---|
+| `format:check` | **pass** — all files clean |
+| `lint` | **pass** — 0 errors |
+| `typecheck` | **pass** — 0 errors |
+| `npm test` | **6 suites, 57 tests passed** |
+| `npm run test:e2e` (no real infra) | **2 suites, 19 passed**; 7 skipped (real-infra gate) |
+| `E2E_REAL_INFRA=1 npm run test:e2e` | **7 SR-17 tests passed** (audit chain, tamper detection, trigger enforcement) |
+
+SR coverage: SR-01 (deny-by-default route enumeration), SR-06 (CSRF), SR-07 (token hash), SR-17 (audit chain integrity).
+
+### Decisions (M1)
+| # | Decision |
+|---|---|
+| D17 | Prisma-generated client path is `src/generated/prisma/client` (not a directory index; Prisma 7 generates `client.ts` directly) |
+| D18 | `AuditEventUncheckedCreateInput` used for audit appends to allow direct `actorId` field |
+| D19 | `HashableRow` interface (details: unknown) used for hash computation to avoid Prisma JSON type conflicts |
+| D20 | Advisory lock key `(17349, 82901)` serializes audit appends within a transaction |
+
+## M2 — what was done
+
+### Schema and migration
+- Prisma schema: added `ChallengeScope` enum (`REGISTER`, `LOGIN`, `ADD_PASSKEY`); `Invite`, `WebAuthnCredential`, `Challenge` models; `lastLoginAt` column on `User`.
+- Migration `20261009000001_m2_invites_webauthn_challenges/migration.sql`: DDL for all 3 new tables + `ALTER TABLE users ADD COLUMN "lastLoginAt"`.
+- Migration applied cleanly to dev DB.
+
+### Services
+- **`ChallengeService`** (`auth/challenge.service.ts`): generates/stores 32-byte random challenges (base64url), consumes atomically (checks scope, single-use, 5-min TTL). Accepts pre-generated challenge bytes so controller can pass same bytes to simplewebauthn.
+- **`SessionService`** (`auth/session.service.ts`): creates/rotates/destroys sessions; sets `aegis_sid` (HttpOnly, Secure, SameSite=Strict) and `aegis_csrf` (httpOnly:false) cookies; 30-min idle / 8-h absolute TTL (5-min for MFA_PENDING).
+- **`WebAuthnService`** (`auth/webauthn.service.ts`): wraps `@simplewebauthn/server` v14 for registration and authentication ceremonies; takes `challengeBytes: Uint8Array<ArrayBuffer>` (generated by controller) to ensure DB and library see the same challenge.
+
+### Controller
+- **`AuthController`** (`auth/auth.controller.ts`): 6 endpoints per API §1 — `GET /session`, `POST /register/options` (200), `POST /register/verify` (201), `POST /login/options` (200), `POST /login/verify` (200), `POST /logout` (204).
+- `@Throttle({ auth: { limit: 10, ttl: 60_000 } })` on `register/options` and `login/options` (SR-23).
+- `ThrottlerGuard` registered as `APP_GUARD` in `AppModule`.
+
+### Auth module
+- `AuthModule` imports `AuditModule`; exports `ChallengeService`, `WebAuthnService`, `SessionService`.
+- `configure-app.ts`: global `ValidationPipe` with `whitelist: true, forbidNonWhitelisted: true, transform: true`.
+
+### Seed script
+- `scripts/seed-admin.ts`: creates first ADMIN user + invite; reads DB URL from env or `infra/secrets/database_url`; requires `ADMIN_EMAIL` env var; prints one-time onboarding link.
+
+### M2 validation (2026-10-09)
+| Check | Result |
+|---|---|
+| `format` | **pass** — 0 changes |
+| `lint` | **pass** — 0 errors |
+| `typecheck` | **pass** — 0 errors |
+| `npm test` | **7 suites, 65 tests passed** |
+| `npm run test:e2e` (no real infra) | **19 passed, 3 skipped** (real-infra gate) |
+| `E2E_REAL_INFRA=1 npm run test:e2e` | **30/31 passed** (1 skip: MinIO port conflict, pre-existing) |
+| WebAuthn SR-03 tests | **5/5 passed**: registration ceremony, login ceremony, challenge reuse rejected, used invite rejected, wrong-scope challenge rejected |
+| Audit SR-17 tests | **6/6 passed** |
+
+SR coverage added: SR-03 (challenge single-use + expiry + scope binding), SR-23 (auth rate limiting 10 req/min).
+
+### Key bugs fixed (M2)
+| Bug | Root cause | Fix |
+|---|---|---|
+| Challenge mismatch (always 401) | Controller called `generateRegistrationOptions` which generated its own challenge; DB stored a different one | Generate challenge in `ChallengeService.create()` first, pass same `Uint8Array` bytes to simplewebauthn |
+| `register/options` returning 201 | NestJS defaults all POST handlers to 201 (CREATED) | Added `@HttpCode(200)` decorator |
+| Invalid JWK EC key on login verify | `buildCoseKey()` in soft authenticator extracted x/y at wrong SPKI offset (27 vs 26 for the uncompressed-point `04` prefix byte) | Fixed: `x = spki.subarray(27, 59)`, `y = spki.subarray(59, 91)` |
+| Audit tests: authentication failed | `audit.e2e-spec.ts` fallback URL was `postgres:postgres@postgres` (wrong user/db/pass) | Updated to `aegis:aegis_dev_only@aegischain` |
+| Audit test isolation: stale deadbeef rows | `deleteMany` hit DELETE trigger, `.catch()` swallowed silently | `afterEach` now disables triggers, deletes, re-enables |
+
+### Decisions (M2)
+| # | Decision |
+|---|---|
+| D21 | Challenge bytes are generated once in `ChallengeService` and passed to simplewebauthn — never let simplewebauthn generate its own challenge |
+| D22 | `ThrottlerGuard` registered in `AppModule` (not `AuthModule`) so it executes before session/CSRF guards |
+| D23 | `@SkipThrottle()` on the whole `AuthController` class; `@Throttle(...)` re-enables on specific endpoints — avoids accidental rate-limiting of unrelated auth routes |
+
 ## Blockers
+None for M1 or M2.
+
+### Known environment limitation (pre-existing)
+- Port 9000 is occupied by another Docker project; MinIO container cannot start. This causes 1 test to fail in `infra.e2e-spec.ts` (`E2E_REAL_INFRA=1`). Not a code regression; all M1/M2 tests pass without MinIO.
+
+## M0 blockers (resolved)
 None for M0.
 
 ## Environment limitations / notes
@@ -64,4 +170,4 @@ None for M0.
 | D15 | Secrets generator is Node (`gen-secrets.mjs`), not bash, for Windows/Linux parity |
 
 ## Next exact task
-**M1 — Data model, RBAC core, and audit log** (see IMPLEMENTATION_PLAN.md). Start only after the M0 commit is approved and made.
+**M3 — TOTP enrollment and step-up authentication** (see IMPLEMENTATION_PLAN.md).

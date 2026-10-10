@@ -2,9 +2,11 @@ import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrismaService } from '../database/prisma.service';
 import { StorageProbe } from './storage.probe';
+import { Public } from '../modules/auth/guards/public.decorator';
 
 type Status = 'up' | 'down';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

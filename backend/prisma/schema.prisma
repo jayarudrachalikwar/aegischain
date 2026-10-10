@@ -1,6 +1,5 @@
 // AegisChain 2.0 - Prisma schema.
-// M0: no domain models yet (users, sessions, audit... arrive in M1+).
-// The connection URL is NOT stored here; it is supplied via prisma.config.ts from the environment.
+// Connection URL is supplied via prisma.config.ts from the environment.
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -9,4 +8,141 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// M1: identity, sessions, and audit log.
+// M2: invites, WebAuthn credentials, and challenges.
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  ADMIN
+  AUDITOR
+  SECURITY_OFFICER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  LOCKED
+  ENROLLMENT_PENDING
+}
+
+enum SessionState {
+  ENROLLMENT_PENDING
+  MFA_PENDING
+  ACTIVE
+}
+
+enum ChallengeScope {
+  REGISTER
+  LOGIN
+  ADD_PASSKEY
+}
+
+model User {
+  id             String              @id @default(uuid()) @db.Uuid
+  email          String              @unique
+  displayName    String
+  department     String?
+  role           UserRole            @default(EMPLOYEE)
+  status         UserStatus          @default(ENROLLMENT_PENDING)
+  did            String              @unique
+  lastLoginAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  sessions       Session[]
+  auditEvents    AuditEvent[]
+  invites        Invite[]            @relation("InviteCreator")
+  invite         Invite?             @relation("InviteTarget")
+  credentials    WebAuthnCredential[]
+  challenges     Challenge[]
+
+  @@map("users")
+}
+
+model Invite {
+  id              String    @id @default(uuid()) @db.Uuid
+  tokenHash       String    @unique
+  userId          String    @unique @db.Uuid
+  createdById     String    @db.Uuid
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation("InviteTarget", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy       User      @relation("InviteCreator", fields: [createdById], references: [id])
+
+  @@map("invites")
+}
+
+model WebAuthnCredential {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  credentialId  String    @unique
+  publicKey     Bytes
+  counter       BigInt    @default(0)
+  name          String?
+  aaguid        String?
+  createdAt     DateTime  @default(now())
+  lastUsedAt    DateTime?
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("webauthn_credentials")
+}
+
+model Challenge {
+  id          String         @id @default(uuid()) @db.Uuid
+  challenge   String
+  scope       ChallengeScope
+  userId      String?        @db.Uuid
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime       @default(now())
+
+  user        User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("challenges")
+}
+
+model Session {
+  id         String       @id @default(uuid()) @db.Uuid
+  tokenHash  String       @unique
+  userId     String       @db.Uuid
+  state      SessionState @default(MFA_PENDING)
+  stepUpAt   DateTime?
+  idleAt     DateTime     @default(now())
+  absoluteAt DateTime
+  expiresAt  DateTime
+  createdAt  DateTime     @default(now())
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model AuditEvent {
+  seq        BigInt   @id @default(autoincrement())
+  ts         DateTime @default(now())
+  actorId    String?  @db.Uuid
+  actorRole  String?
+  action     String
+  targetType String?
+  targetId   String?
+  outcome    String
+  ip         String?
+  userAgent  String?
+  requestId  String?
+  details    Json?
+  prevHash   String?
+  hash       String
+
+  actor      User?    @relation(fields: [actorId], references: [id])
+
+  @@map("audit_events")
 }
