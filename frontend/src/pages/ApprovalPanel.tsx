@@ -218,13 +218,13 @@ export const ApprovalPanel: React.FC = () => {
         subtitle={`Smart contract transaction for ${activeModalRequest?.assetName}`}
       >
         <form onSubmit={handleConfirmDecision} className="space-y-4">
-          <div className="p-3 bg-stone-100 border border-stone-300 font-mono text-xs space-y-1">
-            <p><strong>Requester:</strong> {activeModalRequest?.requesterName}</p>
-            <p><strong>Permission:</strong> {activeModalRequest?.permission} ({activeModalRequest?.durationHours} Hours)</p>
+          <div className="p-3.5 bg-stone-50 border border-black/[0.08] rounded-xl font-mono text-xs space-y-1">
+            <p><strong className="text-stone-900">Requester:</strong> <span className="text-stone-700">{activeModalRequest?.requesterName}</span></p>
+            <p><strong className="text-stone-900">Permission:</strong> <span className="text-stone-700">{activeModalRequest?.permission} ({activeModalRequest?.durationHours} Hours)</span></p>
           </div>
 
-          <div className="space-y-1">
-            <label className="block font-mono text-xs uppercase font-bold text-inherit tracking-wider">
+          <div className="space-y-1.5">
+            <label className="block font-mono text-xs uppercase font-bold text-stone-800 tracking-wider">
               {reviewDecision === 'APPROVED' ? 'Approval Audit Note' : 'Rejection Rationale *'}
             </label>
             <textarea
@@ -232,15 +232,15 @@ export const ApprovalPanel: React.FC = () => {
               required
               value={reviewNote}
               onChange={(e) => setReviewNote(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-mono bg-warm-white text-secure-black border-[1.5px] border-secure-black shadow-ink-sm focus:outline-none focus:ring-1 focus:ring-signal-red"
+              className="w-full px-3.5 py-2.5 text-xs font-mono bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-900 border border-black/[0.1] rounded-xl focus:outline-none focus:ring-1 focus:ring-black transition-all shadow-xs"
             />
           </div>
 
-          <div className="p-2 bg-black/5 font-mono text-[10px] text-stone-500">
-            Transaction will be signed by DID: <code className="text-bel-navy font-bold">{currentUser?.did}</code>
+          <div className="p-2.5 bg-stone-100 border border-black/[0.06] rounded-xl font-mono text-[11px] text-stone-600">
+            Transaction signed by DID: <code className="text-stone-900 font-bold">{currentUser?.did}</code>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-black/[0.06]">
             <Button type="button" variant="outline" onClick={() => setActiveModalRequest(null)}>
               Cancel
             </Button>

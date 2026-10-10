@@ -19,29 +19,27 @@ export const Card: React.FC<CardProps> = ({
   subtitle,
   badge,
   headerAction,
-  theme = 'parchment',
+  theme = 'white',
   className,
   contentClassName,
-  hasCrosshairs = true,
 }) => {
   const themeStyles = {
-    parchment: 'bg-warm-white/80 text-secure-black border-secure-black',
-    navy: 'bg-bel-navy text-parchment-light border-secure-black',
-    dark: 'bg-defence-900 text-stone-200 border-defence-border',
-    white: 'bg-white text-secure-black border-secure-black',
+    white: 'bg-white text-stone-900 border border-black/[0.08] shadow-xs',
+    parchment: 'bg-stone-50/80 text-stone-900 border border-black/[0.08] shadow-xs',
+    navy: 'bg-[#0d0d0d] text-white border border-black/[0.12] shadow-xs',
+    dark: 'bg-stone-900 text-stone-100 border border-black/[0.12] shadow-xs',
   };
 
   return (
     <div
       className={clsx(
-        'relative border-[1.5px] shadow-ink transition-all',
-        hasCrosshairs && 'technical-corner',
+        'relative rounded-2xl overflow-hidden transition-all',
         themeStyles[theme],
         className
       )}
     >
       {(title || badge || headerAction) && (
-        <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-inherit bg-black/5">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/[0.06] bg-stone-50/50">
           <div>
             {title && (
               <div className="flex items-center gap-2">
@@ -50,13 +48,13 @@ export const Card: React.FC<CardProps> = ({
               </div>
             )}
             {subtitle && (
-              <p className="text-[11px] font-mono opacity-70 mt-0.5">{subtitle}</p>
+              <p className="text-[11px] font-mono text-stone-500 mt-0.5">{subtitle}</p>
             )}
           </div>
           {headerAction && <div>{headerAction}</div>}
         </div>
       )}
-      <div className={clsx('p-4 md:p-5', contentClassName)}>
+      <div className={clsx('p-5 md:p-6', contentClassName)}>
         {children}
       </div>
     </div>
