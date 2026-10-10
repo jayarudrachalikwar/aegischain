@@ -1,9 +1,10 @@
 # AegisChain 2.0 — Development Status
 
-_Last updated: 2026-10-09_
+_Last updated: 2026-10-10_
 
 ## Current phase
-**M2 (WebAuthn registration + login): complete.** All acceptance criteria met and verified (details below).
+**M3 (TOTP enrollment, MFA verify, step-up): complete.** All acceptance criteria met and verified (details below).
+M2 complete (previous milestone).
 
 ---
 
@@ -169,5 +170,66 @@ None for M0.
 | D16 | MinIO via digest-pinned Chainguard image; storage code stays S3-generic |
 | D15 | Secrets generator is Node (`gen-secrets.mjs`), not bash, for Windows/Linux parity |
 
+## M3 — what was done
+
+### Schema migration
+- Migration `20261009000002_m3_totp/migration.sql`: added `totpSecret`, `totpPendingSecret`, `totpEnrolled`, `lastTotpStep`, `mfaFailedCount`, `mfaFailedWindowStart`, `mfaFailedAt` to `users`; added `state` (ENROLLMENT_PENDING | MFA_PENDING | ACTIVE), `mfaAttempts`, `stepUpAt` to `sessions`.
+
+### Crypto module
+- `KekService` (`crypto/kek.service.ts`): AES-256-GCM envelope encryption for TOTP secrets; HKDF subkey (`aegischain-totp-v1`); format `iv(12) || ciphertext || tag(16)`.
+- `CryptoModule` (`crypto/crypto.module.ts`): exports `KekService`.
+
+### TotpService (`auth/totp.service.ts`)
+- Uses `otplib` v13 functional API (`generateSecret`, `generateSync`, `generateURI`).
+- `verify()`: ±1 time-step window using `generateSync({ strategy: 'hotp', counter: s })`; replay prevention via `lastTotpStep`.
+- `encryptSecret` / `decryptSecret` via `KekService`; `generateQrCode` via `qrcode`.
+
+### Session guard updates (`auth/guards/session.guard.ts`)
+- `@PendingSession('ENROLLMENT_PENDING' | 'MFA_PENDING')` decorator; guard routes `MFA_PENDING` sessions to `MFA_REQUIRED` 401, `ENROLLMENT_PENDING` to `ENROLLMENT_REQUIRED` 401.
+- `ACCOUNT_LOCKED` → 403 when `user.status === 'LOCKED'`.
+
+### StepUpGuard (`auth/guards/step-up.guard.ts`)
+- Checks `session.stepUpAt` is within 5 minutes for `@RequireStepUp()` decorated routes.
+
+### Auth controller endpoints (M3 additions)
+- `POST /totp/enroll`: `@PendingSession('ENROLLMENT_PENDING')` — generates secret, stores encrypted pending, returns `{ otpauthUri, secret, qrCodeDataUrl }` (SR-08: secret only returned here).
+- `POST /totp/enroll/verify`: `@PendingSession('ENROLLMENT_PENDING')` — verifies code, commits `totpSecret`, sets `status=ACTIVE`, rotates session.
+- `POST /mfa/verify`: `@PendingSession('MFA_PENDING')` — verifies TOTP; 5-failure session lockout; 10/hour account lockout.
+- `POST /step-up`: active session — verifies TOTP, rotates session with `stepUpAt`.
+
+### Auth module updates
+- Added `CryptoModule` import, `TotpService` provider, `StepUpGuard` as 4th `APP_GUARD`.
+
+### Throttler fix
+- `ThrottlerModule.forRoot` now has `skipIf: () => process.env['NODE_ENV'] === 'test'` so integration tests run without hitting the 10 req/min limit.
+- Root cause: `@SkipThrottle()` defaults to `{ default: true }` which doesn't skip the named `'auth'` throttler; `skipIf` is evaluated at request time (after `testEnv()` sets `NODE_ENV=test`).
+
+### M3 validation (2026-10-10)
+| Check | Result |
+|---|---|
+| `typecheck` | **pass** — 0 errors |
+| `lint` | **pass** — 0 errors |
+| `npm test` | **8 suites, 77 passed** |
+| `E2E_REAL_INFRA=1 npm run test:e2e` | **47/48 passed** (1 skip: pre-existing MinIO port conflict) |
+| M3 TOTP e2e | **17/17 passed** |
+
+SR coverage added: SR-04 (TOTP replay, session/account lockout), SR-05 (session rotation on every auth state change), SR-08 (secret only returned by `totp/enroll`), SR-18 (TOTP code never logged).
+
+### Key bugs fixed (M3)
+| Bug | Root cause | Fix |
+|---|---|---|
+| `otplib` v13 API mismatch | `authenticator`/`hotp` not exported; v13 uses functional API | Rewrote to use `generateSync({ strategy: 'hotp', counter })` |
+| ESM incompatibility in Jest | `@scure/base` (dependency of otplib v13) is ESM-only | Unit tests mock `otplib` entirely; e2e: `transformIgnorePatterns` |
+| `@SkipThrottle()` not skipping named throttler | Default `{ default: true }` vs throttler named `'auth'` | `skipIf: () => NODE_ENV === 'test'` in throttler config |
+| Step-up offset conflict | Enrollment at offset 0 + MFA at +1 = lastTotpStep at +1; no room for step-up (+2 outside ±1 window) | Enrollment uses offset -1; MFA 0; step-up +1 |
+
+### Decisions (M3)
+| # | Decision |
+|---|---|
+| D24 | `otplib` v13 functional API (`generateSync` with `strategy: 'hotp'`) used for per-step TOTP with replay prevention |
+| D25 | TOTP secrets AES-256-GCM encrypted at rest via `KekService` (HKDF subkey, per-secret IV) |
+| D26 | MFA lockout: 5 bad codes per session → destroy session; 10/hour per account → lock account |
+| D27 | `ThrottlerModule.forRoot` uses `skipIf` for test bypass rather than module-level overrides (which fail because module decorators evaluate at import time before `testEnv()`) |
+
 ## Next exact task
-**M3 — TOTP enrollment and step-up authentication** (see IMPLEMENTATION_PLAN.md).
+**M4 — Asset management (upload, versioning, integrity)** (see IMPLEMENTATION_PLAN.md).

@@ -169,7 +169,7 @@ function parseCookies(setCookieHeaders: unknown): {
       .post('/api/v1/auth/totp/enroll/verify')
       .set('Cookie', enrollCookie)
       .set('X-CSRF-Token', enrollCsrf)
-      .send({ code: totpCode(secret) });
+      .send({ code: totpCode(secret, -1) }); // offset -1 leaves room for MFA (+0) and step-up (+1)
     expect(verifyRes.status).toBe(200);
 
     const { cookieHeader, csrfToken } = parseCookies(verifyRes.headers['set-cookie']);
@@ -439,7 +439,7 @@ function parseCookies(setCookieHeaders: unknown): {
         .post('/api/v1/auth/mfa/verify')
         .set('Cookie', mfaCookie)
         .set('X-CSRF-Token', mfaCsrf)
-        .send({ code: totpCode(secret, 1) });
+        .send({ code: totpCode(secret) }); // offset 0: after enrollment used -1
       expect(mfaRes.status).toBe(200);
 
       const { cookieHeader: activeCookie, csrfToken: activeCsrf } = parseCookies(
@@ -450,7 +450,7 @@ function parseCookies(setCookieHeaders: unknown): {
         .post('/api/v1/auth/step-up')
         .set('Cookie', activeCookie)
         .set('X-CSRF-Token', activeCsrf)
-        .send({ code: totpCode(secret, 2) });
+        .send({ code: totpCode(secret, 1) }); // offset +1: > lastTotpStep(0)
 
       expect(stepRes.status).toBe(200);
       expect(stepRes.body.stepUpValidUntil).toBeDefined();
@@ -467,7 +467,7 @@ function parseCookies(setCookieHeaders: unknown): {
         .post('/api/v1/auth/mfa/verify')
         .set('Cookie', mfaCookie)
         .set('X-CSRF-Token', mfaCsrf)
-        .send({ code: totpCode(secret, 1) });
+        .send({ code: totpCode(secret) }); // offset 0
 
       const { cookieHeader: activeCookie, csrfToken: activeCsrf } = parseCookies(
         mfaRes.headers['set-cookie'],
@@ -477,7 +477,7 @@ function parseCookies(setCookieHeaders: unknown): {
         .post('/api/v1/auth/step-up')
         .set('Cookie', activeCookie)
         .set('X-CSRF-Token', activeCsrf)
-        .send({ code: totpCode(secret, 2) });
+        .send({ code: totpCode(secret, 1) }); // offset +1 > lastTotpStep(0)
 
       // Old active session must be gone
       const sidOnly = activeCookie.split(';')[0];
