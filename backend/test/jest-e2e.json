@@ -3,7 +3,11 @@
   "rootDir": "..",
   "roots": ["<rootDir>/test"],
   "testRegex": ".*\\.e2e-spec\\.ts$",
-  "transform": { "^.+\\.ts$": "ts-jest" },
+  "transform": {
+    "^.+\\.ts$": "ts-jest",
+    "^.+\\.js$": ["ts-jest", { "diagnostics": false }]
+  },
+  "transformIgnorePatterns": ["node_modules/(?!(@scure|@noble|@otplib|otplib)/)"],
   "testEnvironment": "node",
   "testTimeout": 30000
 }

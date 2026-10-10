@@ -12,6 +12,7 @@ datasource db {
 
 // M1: identity, sessions, and audit log.
 // M2: invites, WebAuthn credentials, and challenges.
+// M3: TOTP enrollment, MFA login, step-up.
 
 enum UserRole {
   EMPLOYEE
@@ -51,6 +52,13 @@ model User {
   lastLoginAt    DateTime?
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+
+  totpSecret          Bytes?
+  totpPendingSecret   Bytes?
+  totpEnrolled        Boolean   @default(false)
+  lastTotpStep        BigInt?
+  mfaFailedCount      Int       @default(0)
+  mfaWindowStart      DateTime?
 
   sessions       Session[]
   auditEvents    AuditEvent[]
@@ -110,17 +118,18 @@ model Challenge {
 }
 
 model Session {
-  id         String       @id @default(uuid()) @db.Uuid
-  tokenHash  String       @unique
-  userId     String       @db.Uuid
-  state      SessionState @default(MFA_PENDING)
-  stepUpAt   DateTime?
-  idleAt     DateTime     @default(now())
-  absoluteAt DateTime
-  expiresAt  DateTime
-  createdAt  DateTime     @default(now())
+  id          String       @id @default(uuid()) @db.Uuid
+  tokenHash   String       @unique
+  userId      String       @db.Uuid
+  state       SessionState @default(MFA_PENDING)
+  stepUpAt    DateTime?
+  mfaAttempts Int          @default(0)
+  idleAt      DateTime     @default(now())
+  absoluteAt  DateTime
+  expiresAt   DateTime
+  createdAt   DateTime     @default(now())
 
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("sessions")

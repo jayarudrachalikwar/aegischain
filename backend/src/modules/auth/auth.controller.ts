@@ -12,15 +12,28 @@ import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { createHash, randomBytes } from 'node:crypto';
 import { Public } from './guards/public.decorator';
+import { PendingSession } from './guards/pending-session.decorator';
 import { ChallengeService } from './challenge.service';
 import { WebAuthnService } from './webauthn.service';
 import { SessionService } from './session.service';
+import { TotpService } from './totp.service';
 import type { SessionRequest } from './guards/session.guard';
 import type { User } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { RegisterOptionsDto, RegisterVerifyDto, LoginOptionsDto, LoginVerifyDto } from './auth.dto';
+import { ApiException } from '../../common/api-error';
+import {
+  RegisterOptionsDto,
+  RegisterVerifyDto,
+  LoginOptionsDto,
+  LoginVerifyDto,
+  TotpCodeDto,
+} from './auth.dto';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/server';
+
+const MFA_LOCKOUT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MFA_SESSION_LIMIT = 5;
+const MFA_ACCOUNT_LIMIT = 10;
 
 @SkipThrottle()
 @Controller('auth')
@@ -29,6 +42,7 @@ export class AuthController {
     private readonly challenges: ChallengeService,
     private readonly webauthn: WebAuthnService,
     private readonly sessions: SessionService,
+    private readonly totp: TotpService,
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
   ) {}
@@ -75,7 +89,6 @@ export class AuthController {
     const invite = await this.lookupAndValidateInvite(dto.inviteToken);
     const user = invite.user;
 
-    // Generate the challenge once, store in DB, and pass same bytes to simplewebauthn.
     const { id: challengeId, challenge } = await this.challenges.create('REGISTER', user.id);
     const challengeBytes = new Uint8Array(Buffer.from(challenge, 'base64url'));
     const opts = await this.webauthn.generateRegistrationOptions(user, challengeBytes);
@@ -99,7 +112,6 @@ export class AuthController {
       dto.credentialName,
     );
 
-    // Consume invite atomically
     await this.prisma.invite.update({
       where: { id: invite.id },
       data: { usedAt: new Date() },
@@ -130,7 +142,6 @@ export class AuthController {
 
     if (dto.email) {
       const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-      // Never reveal whether the email exists — return same shape regardless
       userId = user?.status === 'ACTIVE' ? user.id : undefined;
     }
 
@@ -188,6 +199,178 @@ export class AuthController {
     return { state: 'MFA_PENDING' };
   }
 
+  // ── TOTP Enrollment ───────────────────────────────────────────────────────
+
+  @PendingSession('ENROLLMENT_PENDING')
+  @HttpCode(200)
+  @Post('totp/enroll')
+  async totpEnroll(@Req() req: SessionRequest) {
+    const { user } = req;
+    const secret = this.totp.generateSecret();
+    const uri = this.totp.buildUri(secret, user.email);
+    const qrCodeDataUrl = await this.totp.generateQrCode(uri);
+
+    const encryptedSecret = Buffer.from(this.totp.encryptSecret(secret));
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { totpPendingSecret: encryptedSecret },
+    });
+
+    // SR-08: plaintext secret returned only here, never again
+    return { otpauthUri: uri, secret, qrCodeDataUrl };
+  }
+
+  @PendingSession('ENROLLMENT_PENDING')
+  @HttpCode(200)
+  @Post('totp/enroll/verify')
+  async totpEnrollVerify(
+    @Body() dto: TotpCodeDto,
+    @Req() req: SessionRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, session } = req;
+
+    if (!user.totpPendingSecret) {
+      throw new ApiException(400, 'ENROLLMENT_NOT_STARTED', 'Call POST /auth/totp/enroll first');
+    }
+
+    const pendingSecret = this.totp.decryptSecret(Buffer.from(user.totpPendingSecret));
+    const result = this.totp.verify(dto.code, pendingSecret, null);
+
+    if (!result.valid) {
+      const newAttempts = session.mfaAttempts + 1;
+      if (newAttempts >= MFA_SESSION_LIMIT) {
+        await this.sessions.destroy(session.id, res);
+        throw new ApiException(401, 'TOO_MANY_ATTEMPTS', 'Too many failed attempts');
+      }
+      await this.prisma.session.update({
+        where: { id: session.id },
+        data: { mfaAttempts: newAttempts },
+      });
+      throw new ApiException(401, 'INVALID_CODE', 'Invalid TOTP code');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        totpSecret: user.totpPendingSecret,
+        totpPendingSecret: null,
+        totpEnrolled: true,
+        lastTotpStep: result.step!,
+        status: 'ACTIVE',
+      },
+    });
+
+    await this.sessions.rotate(session.id, user.id, 'ACTIVE', res);
+
+    await this.audit.append({
+      action: 'TOTP_ENROLLED',
+      outcome: 'SUCCESS',
+      actorId: user.id,
+      actorRole: user.role,
+      targetType: 'user',
+      targetId: user.id,
+    });
+
+    const updatedUser = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    return { state: 'ACTIVE', user: formatUser(updatedUser) };
+  }
+
+  // ── MFA Verify ────────────────────────────────────────────────────────────
+
+  @PendingSession('MFA_PENDING')
+  @HttpCode(200)
+  @Post('mfa/verify')
+  async mfaVerify(
+    @Body() dto: TotpCodeDto,
+    @Req() req: SessionRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, session } = req;
+
+    if (!user.totpSecret) {
+      throw new ApiException(500, 'INTERNAL_ERROR', 'TOTP not configured');
+    }
+
+    const secret = this.totp.decryptSecret(Buffer.from(user.totpSecret));
+    const result = this.totp.verify(
+      dto.code,
+      secret,
+      user.lastTotpStep !== undefined ? user.lastTotpStep : null,
+    );
+
+    if (!result.valid) {
+      await this.handleMfaFailure(user.id, session.id, session.mfaAttempts, res);
+    }
+
+    // Success: clear failure counters, update lastLoginAt, lastTotpStep, rotate session
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastTotpStep: result.step!,
+        mfaFailedCount: 0,
+        mfaWindowStart: null,
+        lastLoginAt: new Date(),
+      },
+    });
+
+    await this.sessions.rotate(session.id, user.id, 'ACTIVE', res);
+
+    await this.audit.append({
+      action: 'LOGIN_SUCCEEDED',
+      outcome: 'SUCCESS',
+      actorId: user.id,
+      actorRole: user.role,
+    });
+
+    const updatedUser = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    return { state: 'ACTIVE', user: formatUser(updatedUser) };
+  }
+
+  // ── Step-up ───────────────────────────────────────────────────────────────
+
+  @HttpCode(200)
+  @Post('step-up')
+  async stepUp(
+    @Body() dto: TotpCodeDto,
+    @Req() req: SessionRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, session } = req;
+
+    if (!user.totpSecret) {
+      throw new ApiException(500, 'INTERNAL_ERROR', 'TOTP not configured');
+    }
+
+    const secret = this.totp.decryptSecret(Buffer.from(user.totpSecret));
+    const result = this.totp.verify(
+      dto.code,
+      secret,
+      user.lastTotpStep !== undefined ? user.lastTotpStep : null,
+    );
+
+    if (!result.valid) {
+      throw new ApiException(401, 'INVALID_CODE', 'Invalid TOTP code');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastTotpStep: result.step! },
+    });
+
+    const stepUpAt = new Date();
+    await this.sessions.rotate(session.id, user.id, 'ACTIVE', res, stepUpAt);
+
+    await this.audit.append({
+      action: 'STEP_UP_COMPLETED',
+      outcome: 'SUCCESS',
+      actorId: user.id,
+      actorRole: user.role,
+    });
+
+    return { stepUpValidUntil: new Date(stepUpAt.getTime() + 5 * 60 * 1000) };
+  }
+
   // ── Logout ────────────────────────────────────────────────────────────────
 
   @Post('logout')
@@ -203,6 +386,57 @@ export class AuthController {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  private async handleMfaFailure(
+    userId: string,
+    sessionId: string,
+    currentAttempts: number,
+    res: Response,
+  ): Promise<never> {
+    const newAttempts = currentAttempts + 1;
+
+    // Per-session limit: 5 failures destroy the session
+    if (newAttempts >= MFA_SESSION_LIMIT) {
+      await this.sessions.destroy(sessionId, res);
+      throw new ApiException(401, 'TOO_MANY_ATTEMPTS', 'Too many failed attempts');
+    }
+
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { mfaAttempts: newAttempts },
+    });
+
+    // Per-account hourly limit: 10 failures lock the account
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const now = new Date();
+    const windowExpired =
+      !user.mfaWindowStart || now.getTime() - user.mfaWindowStart.getTime() > MFA_LOCKOUT_WINDOW_MS;
+
+    const newCount = windowExpired ? 1 : user.mfaFailedCount + 1;
+    const windowStart = windowExpired ? now : user.mfaWindowStart!;
+
+    if (newCount >= MFA_ACCOUNT_LIMIT) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { status: 'LOCKED', mfaFailedCount: newCount, mfaWindowStart: windowStart },
+      });
+      await this.audit.append({
+        action: 'ACCOUNT_LOCKED',
+        outcome: 'SUCCESS',
+        actorId: userId,
+        actorRole: user.role,
+        details: { reason: 'too_many_mfa_failures' },
+      });
+      throw new ApiException(403, 'ACCOUNT_LOCKED', 'Account locked due to too many failures');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mfaFailedCount: newCount, mfaWindowStart: windowStart },
+    });
+
+    throw new ApiException(401, 'INVALID_CODE', 'Invalid TOTP code');
+  }
 
   private async lookupAndValidateInvite(rawToken: string) {
     const tokenHash = createHash('sha256').update(rawToken).digest('hex');
@@ -228,7 +462,7 @@ function formatUser(user: User) {
     role: user.role,
     department: user.department,
     status: user.status,
-    totpEnrolled: false, // M3 fills this
+    totpEnrolled: user.totpEnrolled,
     createdAt: user.createdAt,
     lastLoginAt: user.lastLoginAt,
   };

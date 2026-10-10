@@ -27,7 +27,9 @@ export type AuditAction =
   | 'INTEGRITY_MISMATCH'
   | 'SECURITY_ALERT_RAISED'
   | 'SECURITY_ALERT_RESOLVED'
-  | 'AUDIT_CHAIN_ANCHORED';
+  | 'AUDIT_CHAIN_ANCHORED'
+  | 'TOTP_ENROLLED'
+  | 'ACCOUNT_LOCKED';
 
 export type AuditOutcome = 'SUCCESS' | 'FAILURE' | 'DENIED';
 

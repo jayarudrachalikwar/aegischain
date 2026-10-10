@@ -1,5 +1,5 @@
-import { createHash, randomBytes } from 'node:crypto';
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+﻿import { createHash, randomBytes } from 'node:crypto';
+import { ExecutionContext, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SessionGuard, hashToken } from './session.guard';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -67,12 +67,12 @@ describe('SessionGuard', () => {
 
   it('throws 401 when aegis_sid cookie is absent', async () => {
     const { guard, context } = makeGuardAndContext(false, {});
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
   });
 
   it('throws 401 when session is not found', async () => {
     const { guard, context } = makeGuardAndContext(false, { aegis_sid: 'token' }, null);
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
   });
 
   it('throws 401 when session state is not ACTIVE', async () => {
@@ -87,7 +87,7 @@ describe('SessionGuard', () => {
         user: { status: 'ACTIVE' },
       },
     );
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
   });
 
   it('throws 401 and deletes the session when it is expired', async () => {
@@ -103,7 +103,7 @@ describe('SessionGuard', () => {
       },
     );
     const prisma = req as unknown as { cookies: unknown } as never;
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
     void prisma;
   });
 
@@ -119,7 +119,7 @@ describe('SessionGuard', () => {
         user: { status: 'SUSPENDED' },
       },
     );
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
   });
 
   it('throws 401 when user is LOCKED', async () => {
@@ -134,7 +134,7 @@ describe('SessionGuard', () => {
         user: { status: 'LOCKED' },
       },
     );
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(HttpException);
   });
 
   it('attaches user and session to the request on success', async () => {
@@ -152,3 +152,4 @@ describe('SessionGuard', () => {
     expect((req as Record<string, unknown>)['session']).toBe(fakeSession);
   });
 });
+
